@@ -6,8 +6,8 @@ from functools import lru_cache
 
 from .registry import PromptSpec
 
-# Project root (one level up from this file's parent package).
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+# Project root (three levels up: llm/ → processing_scripts/ → project-root/).
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 # Regex to detect prompt section headers like:
 #   1) PAGE TITLE EVALUATION PROMPT

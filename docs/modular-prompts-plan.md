@@ -140,24 +140,26 @@ Output is a list of finding dicts, each with `issue_code`, `element` (tag/id/cla
 5. **Programmatic-first.** Binary issues (missing alt, duplicate IDs) are caught by the programmatic checker before LLM calls, reducing unnecessary API usage.
 6. **Summary prompts are optional.** The three summary prompts (CL01-7, CL02-6, CL03-8) are wired up but only run when explicitly requested via `--include-summaries`.
 
-### 2.2 Proposed Directory Structure
+### 2.2 Directory Structure
 
 ```
 visionaid-a11y-llm-audit/
 ├── processing_scripts/
+│   ├── llm/                       # Modular prompt system + prompt text files
+│   │   ├── __init__.py
+│   │   ├── registry.py            # Element type → WCAG criteria → prompt template mapping
+│   │   ├── templates.py           # Functions that load and fill prompt templates
+│   │   ├── slicers.py             # Functions that extract payload slices for each prompt
+│   │   ├── semantic_checklist_01.txt
+│   │   ├── forms_checklist_02.txt
+│   │   └── nontext_checklist_03.txt
 │   ├── llm_preprocessing/         # UNCHANGED — existing extractors
-│   ├── llm/                       # UNCHANGED — existing prompt text files
 │   └── programmatic/              # UNCHANGED — existing rule-based checker
 │
-├── prompts/                       # NEW — modular prompt system
-│   ├── __init__.py
-│   ├── registry.py                # Element type → WCAG criteria → prompt template mapping
-│   ├── templates.py               # Functions that load and fill prompt templates
-│   └── slicers.py                 # Functions that extract payload slices for each prompt
-│
-├── scripts/
-│   └── run_pipeline.py            # NEW — orchestrates the full element-specific pipeline
-│                                  # (run_factorial_test.py has been removed)
+├── entry_points/
+│   ├── run_pipeline.py            # Orchestrates the full element-specific pipeline
+│   ├── generate_report.py         # JSON → CSV report generator
+│   └── get_visionaid_home.py      # HTML downloader
 │
 └── docs/
     └── modular-prompts-plan.md    # THIS FILE
@@ -168,7 +170,7 @@ visionaid-a11y-llm-audit/
 The registry is the central data structure that maps each evaluation task to its inputs, prompt, and output handling.
 
 ```python
-# prompts/registry.py
+# processing_scripts/llm/registry.py
 
 from dataclasses import dataclass
 from typing import Callable, Optional
@@ -390,7 +392,7 @@ PROMPT_REGISTRY: list[PromptSpec] = [
 Each `.txt` file contains multiple prompts separated by dashed headers. The template loader parses these by prompt number and fills the `{payload}` placeholder.
 
 ```python
-# prompts/templates.py
+# processing_scripts/llm/templates.py
 
 import re
 import json
@@ -446,7 +448,7 @@ def fill_template(prompt_name: str, payload_slice: dict) -> str:
 Slicers extract the relevant subset from an extractor's full payload. Each slicer corresponds to one prompt in the registry.
 
 ```python
-# prompts/slicers.py
+# processing_scripts/llm/slicers.py
 
 """Functions that extract the right JSON slice for each prompt from the full extractor payload."""
 
@@ -603,7 +605,7 @@ output_dir/
 The new `run_pipeline.py` replaces the monolithic test runner with the three-step flow.
 
 ```python
-# scripts/run_pipeline.py — high-level pseudocode
+# entry_points/run_pipeline.py — high-level pseudocode
 
 def run_pipeline(html_path, output_dir, api_key, model, dry_run, include_summaries):
     """Execute the full element-specific accessibility audit pipeline."""
@@ -654,38 +656,37 @@ def run_pipeline(html_path, output_dir, api_key, model, dry_run, include_summari
 
 | What changes | File | Specific function/location |
 |-------------|------|---------------------------|
-| **Import extractors into pipeline** | `scripts/run_pipeline.py` (NEW) | Imports `extract()` from each of the three `processing_scripts/llm_preprocessing/*.py` files |
+| **Import extractors into pipeline** | `entry_points/run_pipeline.py` | Imports `extract()` from each of the three `processing_scripts/llm_preprocessing/*.py` files |
 | **No changes to extractors** | `processing_scripts/llm_preprocessing/*.py` | These are **unchanged** — they already return the right data structures |
-| **Slicer functions consume extractor output** | `prompts/slicers.py` (NEW) | Each slicer function takes one extractor's output dict and returns a JSON string for the `{payload}` placeholder |
-| **Template loader reads existing .txt files** | `prompts/templates.py` (NEW) | Parses `processing_scripts/llm/*.txt` — these files are **unchanged** |
+| **Slicer functions consume extractor output** | `processing_scripts/llm/slicers.py` | Each slicer function takes one extractor's output dict and returns a JSON string for the `{payload}` placeholder |
+| **Template loader reads existing .txt files** | `processing_scripts/llm/templates.py` | Parses `processing_scripts/llm/*.txt` — these files are **unchanged** |
 
 ### 3.2 API Calling
 
 | What changes | File | Specific function/location |
 |-------------|------|---------------------------|
-| **New API call function** | `scripts/run_pipeline.py` (NEW) | Fresh implementation; streaming is unnecessary for modular prompts (all <20k tokens input) |
-| **JSON mode** | `scripts/run_pipeline.py` (NEW) | Set `response_format={"type": "json_object"}` in API calls as recommended by pipeline.md |
-| **Temperature 0.1** | `scripts/run_pipeline.py` (NEW) | Set `temperature=0.1` as recommended by pipeline.md |
+| **New API call function** | `entry_points/run_pipeline.py` | Fresh implementation; streaming is unnecessary for modular prompts (all <20k tokens input) |
+| **JSON mode** | `entry_points/run_pipeline.py` | Set `response_format={"type": "json_object"}` in API calls as recommended by pipeline.md |
+| **Temperature 0.1** | `entry_points/run_pipeline.py` | Set `temperature=0.1` as recommended by pipeline.md |
 
 ### 3.3 Output
 
 | What changes | File | Specific function/location |
 |-------------|------|---------------------------|
-| **Raw JSON output** | `scripts/run_pipeline.py` (NEW) | Saves each prompt's response as a standalone JSON file; report formatting is a separate downstream step |
-| **Programmatic findings** | `scripts/run_pipeline.py` (NEW) | Calls `analyze_html()` and saves output as `programmatic_findings.json` |
+| **Raw JSON output** | `entry_points/run_pipeline.py` | Saves each prompt's response as a standalone JSON file; report formatting is a separate downstream step |
+| **Programmatic findings** | `entry_points/run_pipeline.py` | Calls `analyze_html()` and saves output as `programmatic_findings.json` |
 | **No changes to programmatic checker** | `processing_scripts/programmatic/semantic_checklist_01.py` | Already returns the right structure |
 
 ### 3.4 Files That Need to Change
 
 | File | Change Type | Description |
 |------|-------------|-------------|
-| `prompts/__init__.py` | **CREATE** | Package init |
-| `prompts/registry.py` | **CREATE** | PromptSpec dataclass + PROMPT_REGISTRY list |
-| `prompts/templates.py` | **CREATE** | Template parser + filler |
-| `prompts/slicers.py` | **CREATE** | 18 slicer functions (one per prompt) |
-| `scripts/run_pipeline.py` | **CREATE** | Pipeline orchestrator |
-| `scripts/run_factorial_test.py` | **DELETE** | Removed — superseded by run_pipeline.py |
-| `prompts` (empty file) | **DELETE** | Was an empty file blocking the package directory |
+| `processing_scripts/llm/__init__.py` | **CREATED** | Package init |
+| `processing_scripts/llm/registry.py` | **CREATED** | PromptSpec dataclass + PROMPT_REGISTRY list |
+| `processing_scripts/llm/templates.py` | **CREATED** | Template parser + filler |
+| `processing_scripts/llm/slicers.py` | **CREATED** | 18 slicer functions (one per prompt) |
+| `entry_points/run_pipeline.py` | **CREATED** | Pipeline orchestrator |
+| `entry_points/generate_report.py` | **CREATED** | JSON → CSV report generator |
 | `processing_scripts/llm_preprocessing/*.py` | **NO CHANGE** | Extractors are complete |
 | `processing_scripts/llm/*.txt` | **NO CHANGE** | Prompt templates are complete |
 | `processing_scripts/programmatic/*.py` | **NO CHANGE** | Rule-based checker is complete |
@@ -781,10 +782,10 @@ For different websites, token counts will vary proportionally to content volume.
 
 | Step | What to Build | Depends On |
 |------|--------------|------------|
-| 1.1 | `prompts/__init__.py` + `prompts/registry.py` — Define the `PromptSpec` dataclass and `PROMPT_REGISTRY` | Nothing |
-| 1.2 | `prompts/templates.py` — Parse `.txt` files, extract individual prompts, fill `{payload}` | registry.py |
-| 1.3 | `prompts/slicers.py` — Implement all 18 slicer functions | registry.py |
-| 1.4 | `scripts/run_pipeline.py` — Minimal orchestrator: extract → slice → fill → call API → save raw JSON | registry, templates, slicers |
+| 1.1 | `processing_scripts/llm/__init__.py` + `processing_scripts/llm/registry.py` — Define the `PromptSpec` dataclass and `PROMPT_REGISTRY` | Nothing |
+| 1.2 | `processing_scripts/llm/templates.py` — Parse `.txt` files, extract individual prompts, fill `{payload}` | registry.py |
+| 1.3 | `processing_scripts/llm/slicers.py` — Implement all 18 slicer functions | registry.py |
+| 1.4 | `entry_points/run_pipeline.py` — Minimal orchestrator: extract → slice → fill → call API → save raw JSON | registry, templates, slicers |
 | 1.5 | Test on `test_files/dat_visionaid_home.html` (smaller file, cheaper) with `--dry-run` first | run_pipeline.py |
 
 **Element types modularized in this phase:** All 21 prompts are wired up, but testing focuses on three priority element types first.

@@ -9,9 +9,9 @@ This script orchestrates the full pipeline:
   5. Save results as raw JSON
 
 Usage:
-    python scripts/run_pipeline.py --html test_files/home.html
-    python scripts/run_pipeline.py --html test_files/home.html --dry-run
-    python scripts/run_pipeline.py --html test_files/home.html --include-summaries
+    python entry_points/run_pipeline.py --html test_files/home.html
+    python entry_points/run_pipeline.py --html test_files/home.html --dry-run
+    python entry_points/run_pipeline.py --html test_files/home.html --include-summaries
 """
 
 import argparse
@@ -24,13 +24,13 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Ensure project root is on sys.path so we can import prompts/ and processing_scripts/
+# Ensure project root is on sys.path so we can import processing_scripts/
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from prompts.registry import PROMPT_REGISTRY, PromptSpec
-from prompts.slicers import get_slicer, is_empty_slice
-from prompts.templates import fill_template
+from processing_scripts.llm.registry import PROMPT_REGISTRY, PromptSpec
+from processing_scripts.llm.slicers import get_slicer, is_empty_slice
+from processing_scripts.llm.templates import fill_template
 from processing_scripts.llm_preprocessing.semantic_checklist_01 import (
     extract as cl01_extract,
 )

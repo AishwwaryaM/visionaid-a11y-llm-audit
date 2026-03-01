@@ -5,8 +5,8 @@ output/prompts/*.json, normalizes all findings into flat CSV rows, and
 writes to test_results/claude/report_YYYY-MM-DD.csv.
 
 Usage:
-    python scripts/generate_report.py
-    python scripts/generate_report.py --output-dir ./output --report-dir ./test_results/claude/
+    python entry_points/generate_report.py
+    python entry_points/generate_report.py --output-dir ./output --report-dir ./test_results/claude/
 """
 
 from __future__ import annotations
