@@ -40,7 +40,15 @@ from processing_scripts.llm_preprocessing.forms_checklist_02 import (
 from processing_scripts.llm_preprocessing.nontext_checklist_03 import (
     extract as cl03_extract,
 )
+from processing_scripts.llm.filters import (
+    apply_cl01_filters,
+    apply_cl02_filters,
+    apply_cl03_filters,
+    build_filter_flags,
+)
 from processing_scripts.programmatic.semantic_checklist_01 import audit_html_file
+from processing_scripts.programmatic.forms_checklist_02 import audit_forms
+from processing_scripts.programmatic.nontext_checklist_03 import audit_nontext
 
 
 # Pricing per million tokens: (input, output)
@@ -80,46 +88,58 @@ def estimate_tokens(text: str) -> int:
     return max(1, len(text) // 4)
 
 
-def call_api(prompt: str, api_key: str, model: str, max_tokens: int = 8192) -> dict:
-    """Call the Anthropic API with the given prompt.
+class PipelineClient:
+    """Thin wrapper around the Anthropic API that reuses a single client instance.
 
-    Returns a dict with success status, response text, usage stats, and timing.
+    Returns the same dict shape as the old ``call_api()`` function so
+    ``generate_report.py`` continues working unchanged.
     """
-    import anthropic
 
-    client = anthropic.Anthropic(api_key=api_key)
-    start = time.time()
+    def __init__(self, api_key: str, model: str, max_tokens: int = 8192):
+        import anthropic
 
-    try:
-        message = client.messages.create(
-            model=model,
-            max_tokens=max_tokens,
-            temperature=0.1,
-            messages=[{"role": "user", "content": prompt}],
-        )
+        self._client = anthropic.Anthropic(api_key=api_key)
+        self.model = model
+        self.max_tokens = max_tokens
 
-        response_text = "".join(
-            block.text for block in message.content if block.type == "text"
-        )
+    def call(self, prompt: str) -> dict:
+        """Send *prompt* to the API and return a result dict.
 
-        return {
-            "success": True,
-            "response": response_text,
-            "model": message.model,
-            "usage": {
-                "input_tokens": message.usage.input_tokens,
-                "output_tokens": message.usage.output_tokens,
-            },
-            "stop_reason": message.stop_reason,
-            "duration_seconds": round(time.time() - start, 2),
-        }
+        Returns a dict with keys ``success``, ``response``, ``model``,
+        ``usage``, ``stop_reason``, and ``duration_seconds``.
+        """
+        start = time.time()
 
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e),
-            "duration_seconds": round(time.time() - start, 2),
-        }
+        try:
+            message = self._client.messages.create(
+                model=self.model,
+                max_tokens=self.max_tokens,
+                temperature=0.1,
+                messages=[{"role": "user", "content": prompt}],
+            )
+
+            response_text = "".join(
+                block.text for block in message.content if block.type == "text"
+            )
+
+            return {
+                "success": True,
+                "response": response_text,
+                "model": message.model,
+                "usage": {
+                    "input_tokens": message.usage.input_tokens,
+                    "output_tokens": message.usage.output_tokens,
+                },
+                "stop_reason": message.stop_reason,
+                "duration_seconds": round(time.time() - start, 2),
+            }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e),
+                "duration_seconds": round(time.time() - start, 2),
+            }
 
 
 def save_json(obj: object, path: Path) -> None:
@@ -145,9 +165,15 @@ def run_pipeline(
 
     # ── Step 0: Programmatic checks ──────────────────────────────────────────
     print("Step 0: Running programmatic checks...")
-    programmatic_findings = audit_html_file(html_path_str)
+    sem_findings = audit_html_file(html_path_str)
+    form_findings = audit_forms(html_path_str)
+    ntext_findings = audit_nontext(html_path_str)
+    programmatic_findings = sem_findings + form_findings + ntext_findings
     save_json(programmatic_findings, output_dir / "programmatic_findings.json")
-    print(f"  Found {len(programmatic_findings)} programmatic issues")
+    print(
+        f"  CL01: {len(sem_findings)} | CL02: {len(form_findings)} | "
+        f"CL03: {len(ntext_findings)} | Total: {len(programmatic_findings)}"
+    )
 
     # ── Step 1: Extract structured payloads ──────────────────────────────────
     print("Step 1: Extracting structured payloads...")
@@ -171,6 +197,19 @@ def run_pipeline(
         f"CL03: ~{cl03_tokens:,} tokens"
     )
 
+    # ── Step 1.5: Apply Pass 1 filters ───────────────────────────────────────
+    print("Step 1.5: Applying Pass 1 filters to payloads...")
+    filter_flags = build_filter_flags(sem_findings, form_findings, ntext_findings)
+    payloads["CL01"] = apply_cl01_filters(payloads["CL01"], filter_flags)
+    payloads["CL02"] = apply_cl02_filters(payloads["CL02"], filter_flags)
+    payloads["CL03"] = apply_cl03_filters(payloads["CL03"], filter_flags)
+
+    active_filters = [k for k, v in filter_flags.items()
+                      if k != "skip_prompts" and v]
+    print(f"  Active filters: {active_filters or '(none)'}")
+    if filter_flags["skip_prompts"]:
+        print(f"  Prompts skipped by filter: {filter_flags['skip_prompts']}")
+
     # ── Step 2: Slice, fill, and call ────────────────────────────────────────
     print("Step 2: Processing prompts...")
 
@@ -179,10 +218,21 @@ def run_pipeline(
     total_input_tokens = 0
     total_output_tokens = 0
 
+    # Initialise client once (only needed for live runs)
+    client = None
+    if not dry_run:
+        client = PipelineClient(api_key=api_key, model=model)
+
     for spec in PROMPT_REGISTRY:
         # Skip summaries unless requested
         if spec.is_summary and not include_summaries:
             skipped.append({"name": spec.name, "reason": "summary (not requested)"})
+            continue
+
+        # Skip prompts excluded by Pass 1 filters
+        if spec.name in filter_flags["skip_prompts"]:
+            skipped.append({"name": spec.name, "reason": "Pass 1 filter (programmatic finding)"})
+            print(f"  [{spec.name}] SKIPPED (Pass 1 filter)")
             continue
 
         # Slice the payload
@@ -227,7 +277,7 @@ def run_pipeline(
         else:
             # Call the API
             print(f"  [{spec.name}] Calling {model} (~{prompt_tokens:,} tokens)...", end="", flush=True)
-            api_result = call_api(prompt_text, api_key, model)
+            api_result = client.call(prompt_text)
 
             prompt_dir = output_dir / "prompts"
             prompt_dir.mkdir(parents=True, exist_ok=True)
@@ -272,6 +322,15 @@ def run_pipeline(
         "dry_run": dry_run,
         "include_summaries": include_summaries,
         "programmatic_findings_count": len(programmatic_findings),
+        "programmatic_findings_by_checker": {
+            "CL01_semantic": len(sem_findings),
+            "CL02_forms": len(form_findings),
+            "CL03_nontext": len(ntext_findings),
+        },
+        "pass1_filters_active": [
+            k for k, v in filter_flags.items()
+            if k != "skip_prompts" and v
+        ],
         "prompts_executed": [r for r in results if r.get("status") != "dry_run"],
         "prompts_dry_run": [r for r in results if r.get("status") == "dry_run"],
         "prompts_skipped": skipped,

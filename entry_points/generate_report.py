@@ -103,38 +103,61 @@ def extract_page_title_from_payload(prompt_data: dict) -> str:
 
 def normalize_programmatic(findings: list[dict], page_title: str,
                            log_date: str) -> list[ReportRow]:
-    """Convert programmatic_findings.json entries to ReportRow objects."""
+    """Convert programmatic_findings.json entries to ReportRow objects.
+
+    Supports both the new schema (rule_id/rule_name/location/description)
+    and the legacy schema (issue_code/checklist_item/element/wcag) for
+    backwards compatibility.
+    """
     rows = []
     for f in findings:
-        element = f.get("element", {})
-        tag = element.get("tag", "")
-        el_id = element.get("id", "")
-        el_classes = element.get("class")
-        snippet = element.get("snippet", "")
+        # ── Resolve element / location ──────────────────────────────────
+        location = f.get("location") or f.get("element") or {}
+        tag = location.get("tag", "")
+        el_id = location.get("id", "")
+        el_classes = location.get("class")
+        snippet = location.get("text_preview") or location.get("snippet", "")
 
-        # Build element_name from tag + id/class
         if el_id:
             element_name = f"<{tag} id=\"{el_id}\">"
         elif el_classes:
             class_str = " ".join(el_classes) if isinstance(el_classes, list) else str(el_classes)
             element_name = f"<{tag} class=\"{class_str}\">"
-        else:
+        elif tag:
             element_name = f"<{tag}>"
+        else:
+            element_name = "(unknown)"
 
+        # ── Resolve identifiers ─────────────────────────────────────────
+        rule_id = f.get("rule_id") or f.get("issue_code", "")
+        rule_name = f.get("rule_name") or f.get("checklist_item", "")
+        description = f.get("description", "")
+
+        # ── Resolve WCAG criterion (legacy schema has it, new one may not)
         wcag = f.get("wcag", {})
         criterion = wcag.get("criterion", "")
         wcag_name = wcag.get("name", "")
 
+        # ── Build row ───────────────────────────────────────────────────
+        issue_title = f"{rule_id}: {rule_name}" if rule_id else rule_name
+        actual = description or rule_name
+        if criterion:
+            expected = f"Element should meet WCAG {criterion} ({wcag_name})"
+        else:
+            expected = f"Element should pass rule {rule_id}"
+        category_suffix = wcag_name if wcag_name else rule_id
+        category = f"Programmatic / {category_suffix}" if category_suffix else "Programmatic"
+
         rows.append(ReportRow(
             element_name=element_name,
             page_title=page_title,
-            issue_title=f"{f.get('issue_code', '')}: {f.get('checklist_item', '')}",
+            issue_title=issue_title,
             steps_to_reproduce=f"Inspect element: {snippet[:200]}",
-            actual_result=f.get("checklist_item", ""),
-            expected_result=f"Element should meet WCAG {criterion} ({wcag_name})",
-            recommendation=f.get("checklist_item", ""),
+            actual_result=actual,
+            expected_result=expected,
+            recommendation=description or rule_name,
             wcag_sc=criterion,
-            category=f"Programmatic / {wcag_name}",
+            category=category,
             log_date=log_date,
             reported_by="Programmatic",
         ))
