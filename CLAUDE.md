@@ -13,6 +13,8 @@ The system has three planned stages:
 
 ```
 project-root/
+├── index.html                       # Team/project website (served via GitHub Pages)
+├── styles.css                       # Website styles
 ├── processing_scripts/
 │   ├── llm/                         # Modular prompt system
 │   │   ├── registry.py              # PromptSpec dataclass + PROMPT_REGISTRY (21 specs)
@@ -35,6 +37,15 @@ project-root/
 └── docs/
     └── modular-prompts-plan.md      # Architecture plan
 ```
+
+## Website (GitHub Pages)
+
+The team project website lives at the repo root (`index.html` + `styles.css`). It is a pure HTML5/CSS3 static site with no build tools or JavaScript frameworks — served directly via GitHub Pages from the main branch root.
+
+- Design: DM Serif Display + DM Sans, teal/amber palette, fully responsive
+- Accessibility: skip link, semantic HTML, ARIA landmarks, WCAG AA contrast
+- Lighthouse scores (last measured): Performance 92 · Accessibility 96 · Best Practices 100 · SEO 100
+- Do not add JavaScript or external CSS frameworks to the website
 
 ## Tech Stack
 
