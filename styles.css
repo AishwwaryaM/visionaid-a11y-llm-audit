@@ -525,26 +525,6 @@ section:nth-child(even) {
   min-height: calc(100vh - 64px);
 }
 
-.audit-server-notice {
-  background: #FFF8EC;
-  border: 1px solid #F0C97A;
-  border-left: 4px solid #E8A838;
-  border-radius: 0 6px 6px 0;
-  padding: 14px 18px;
-  font-size: 0.9rem;
-  color: #5a4200;
-  margin-bottom: 40px;
-  max-width: 760px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.audit-server-notice code {
-  background: rgba(0,0,0,0.07);
-  padding: 1px 5px;
-  border-radius: 3px;
-  font-size: 0.85em;
-}
 
 /* --- Form --- */
 .audit-form {
