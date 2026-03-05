@@ -1,681 +1,894 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="P5: Automating Digital Accessibility — a Georgia Tech C4G project partnering with Vision Aid to build LLM-powered tools for WCAG compliance analysis and automated accessibility remediation.">
-  <meta name="robots" content="index, follow">
-  <title>P5: Automating Digital Accessibility | Georgia Tech C4G</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="P5: Automating Digital Accessibility — a Georgia Tech C4G project partnering with Vision Aid to build LLM-powered tools for WCAG compliance analysis and automated accessibility remediation."
+    />
+    <meta name="robots" content="index, follow" />
+    <title>P5: Automating Digital Accessibility | Georgia Tech C4G</title>
 
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap"
+      rel="stylesheet"
+    />
 
-  <!-- Stylesheet -->
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Skip to main content -->
+    <a href="#main" class="skip-link">Skip to main content</a>
 
-  <!-- Skip to main content -->
-  <a href="#main" class="skip-link">Skip to main content</a>
+    <!-- Navigation -->
+    <header class="navbar">
+      <nav class="navbar-inner" aria-label="Primary navigation">
+        <a href="#hero" class="navbar-brand" id="projectBrandLink"
+          >P5: Digital Accessibility</a
+        >
+        <ul class="nav-links">
+          <li><a href="#about" class="project-nav-link">About</a></li>
+          <li><a href="#team" class="project-nav-link">Team</a></li>
+          <li>
+            <a href="#deliverables" class="project-nav-link">Deliverables</a>
+          </li>
+          <li><a href="#lighthouse" class="project-nav-link">Lighthouse</a></li>
+          <li>
+            <button class="nav-audit-btn" id="auditTabBtn" aria-pressed="false">
+              Audit Tool
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </header>
 
-  <!-- Navigation -->
-  <header class="navbar" role="banner">
-    <nav class="navbar-inner" aria-label="Primary navigation">
-      <a href="#hero" class="navbar-brand" id="projectBrandLink">P5: Digital Accessibility</a>
-      <ul class="nav-links">
-        <li><a href="#about" class="project-nav-link">About</a></li>
-        <li><a href="#team" class="project-nav-link">Team</a></li>
-        <li><a href="#deliverables" class="project-nav-link">Deliverables</a></li>
-        <li><a href="#lighthouse" class="project-nav-link">Lighthouse</a></li>
-        <li>
-          <button class="nav-audit-btn" id="auditTabBtn" aria-pressed="false">
-            Audit Tool
-          </button>
-        </li>
-      </ul>
-    </nav>
-  </header>
-
-  <!-- Main Content -->
-  <main id="main">
-
-    <!-- ── Project content (hidden when Audit Tool tab is active) ── -->
-    <div id="projectContent">
-
-      <!-- Hero Section -->
-      <section id="hero" class="hero" aria-labelledby="hero-heading">
-        <div class="container">
-          <h1 id="hero-heading">Automating Digital Accessibility</h1>
-          <p class="hero-subtitle">Building LLM-powered tools that make the web more accessible for people with visual impairments.</p>
-          <p class="hero-partner">A <strong>Computing for Good</strong> project at Georgia Tech, in partnership with <a href="https://dat.visionaid.org/">Vision Aid Digital Accessibility Testing</a>.</p>
-        </div>
-      </section>
-
-      <!-- About Section -->
-      <section id="about" aria-labelledby="about-heading">
-        <div class="container">
-          <div class="section-header">
-            <div class="accent-bar"></div>
-            <h2 id="about-heading">About the Project</h2>
+    <!-- Main Content -->
+    <main id="main">
+      <!-- ── Project content (hidden when Audit Tool tab is active) ── -->
+      <div id="projectContent">
+        <!-- Hero Section -->
+        <section id="hero" class="hero" aria-labelledby="hero-heading">
+          <div class="container">
+            <h1 id="hero-heading">Automating Digital Accessibility</h1>
+            <p class="hero-subtitle">
+              Building LLM-powered tools that make the web more accessible for
+              people with visual impairments.
+            </p>
+            <p class="hero-partner">
+              A <strong>Computing for Good</strong> project at Georgia Tech, in
+              partnership with
+              <a href="https://dat.visionaid.org/"
+                >Vision Aid Digital Accessibility Testing</a
+              >.
+            </p>
           </div>
-          <div class="about-content">
-            <p>We are partnering with the <strong>Vision Aid Digital Accessibility Testing Team</strong> to build LLM-powered tools that automate digital accessibility analysis and remediation. Our system analyzes webpage source code, identifies WCAG compliance issues, and generates structured reports with proposed fixes. A secondary tool will use these reports to automate code-level accessibility corrections.</p>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- Goal Section -->
-      <section id="goal" aria-labelledby="goal-heading">
-        <div class="container">
-          <div class="section-header">
-            <div class="accent-bar"></div>
-            <h2 id="goal-heading">Our Goal</h2>
-          </div>
-          <div class="goal-content">
-            <blockquote>
-              <p>Reduce the time required to produce digital accessibility reports from hours to minutes using large language models, and automate the application of accessibility fixes to front-end code — making the web more accessible for people with visual impairments.</p>
-            </blockquote>
-          </div>
-        </div>
-      </section>
-
-      <!-- Team Section -->
-      <section id="team" aria-labelledby="team-heading">
-        <div class="container">
-          <div class="section-header">
-            <div class="accent-bar"></div>
-            <h2 id="team-heading">Our Team</h2>
-            <p>Five Georgia Tech students working together to advance digital accessibility.</p>
-          </div>
-          <div class="team-grid">
-            <article class="team-card">
-              <div class="team-card-initial" aria-hidden="true">AH</div>
-              <h3>Annika Hildebrandt</h3>
-              <p>Team Member</p>
-            </article>
-            <article class="team-card">
-              <div class="team-card-initial" aria-hidden="true">AY</div>
-              <h3>Andrew Yin</h3>
-              <p>Team Member</p>
-            </article>
-            <article class="team-card">
-              <div class="team-card-initial" aria-hidden="true">CN</div>
-              <h3>Cole Niblett</h3>
-              <p>Team Member</p>
-            </article>
-            <article class="team-card">
-              <div class="team-card-initial" aria-hidden="true">NF</div>
-              <h3>Nicholas Fulton</h3>
-              <p>Team Member</p>
-            </article>
-            <article class="team-card">
-              <div class="team-card-initial" aria-hidden="true">MM</div>
-              <h3>Mariana Mendez</h3>
-              <p>Team Member</p>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <!-- Deliverables Section -->
-      <section id="deliverables" aria-labelledby="deliverables-heading">
-        <div class="container">
-          <div class="section-header">
-            <div class="accent-bar"></div>
-            <h2 id="deliverables-heading">Deliverables</h2>
-            <p>The key outputs our team is building for Vision Aid.</p>
-          </div>
-          <ol class="deliverables-list">
-            <li>
-              <strong>Accessibility Report Generator</strong> — Analyze static webpage code for WCAG compliance issues and produce structured reports with proposed fixes.
-            </li>
-            <li>
-              <strong>Automated Webpage Editor</strong> — Generate code-level fixes for identified accessibility issues, enabling rapid remediation.
-            </li>
-            <li>
-              <strong>Chrome Browser Extension</strong><span class="stretch">Stretch Goal</span> — Apply accessibility fixes directly in-browser for end users.
-            </li>
-          </ol>
-        </div>
-      </section>
-
-      <!-- Lighthouse Scores Section -->
-      <section id="lighthouse" aria-labelledby="lighthouse-heading">
-        <div class="container">
-          <div class="section-header">
-            <div class="accent-bar"></div>
-            <h2 id="lighthouse-heading">Lighthouse Scores</h2>
-            <p>Measuring the quality of this website across four key categories.</p>
-          </div>
-          <div class="lighthouse-grid">
-            <div class="lighthouse-card">
-              <h3>Performance</h3>
-              <span class="lighthouse-score">92</span>
+        <!-- About Section -->
+        <section id="about" aria-labelledby="about-heading">
+          <div class="container">
+            <div class="section-header">
+              <div class="accent-bar" aria-hidden="true"></div>
+              <h2 id="about-heading">About the Project</h2>
             </div>
-            <div class="lighthouse-card">
-              <h3>Accessibility</h3>
-              <span class="lighthouse-score">96</span>
-            </div>
-            <div class="lighthouse-card">
-              <h3>Best Practices</h3>
-              <span class="lighthouse-score">100</span>
-            </div>
-            <div class="lighthouse-card">
-              <h3>SEO</h3>
-              <span class="lighthouse-score">100</span>
+            <div class="about-content">
+              <p>
+                We are partnering with the
+                <strong>Vision Aid Digital Accessibility Testing Team</strong>
+                to build LLM-powered tools that automate digital accessibility
+                analysis and remediation. Our system analyzes webpage source
+                code, identifies WCAG compliance issues, and generates
+                structured reports with proposed fixes. A secondary tool will
+                use these reports to automate code-level accessibility
+                corrections.
+              </p>
             </div>
           </div>
-          <p class="lighthouse-note">Scores measured via Chrome DevTools Lighthouse on the home page.</p>
-        </div>
-      </section>
+        </section>
 
-    </div><!-- /#projectContent -->
-
-    <!-- ── Audit Tool (shown when Audit Tool tab is active) ── -->
-    <section id="auditTool" class="audit-section" hidden aria-labelledby="audit-heading">
-      <div class="container">
-
-        <div class="section-header">
-          <div class="accent-bar"></div>
-          <h2 id="audit-heading">Accessibility Audit Tool</h2>
-          <p>Drop an HTML file to run a WCAG compliance analysis using the project pipeline.</p>
-        </div>
-
-        <form id="auditForm" class="audit-form" novalidate>
-
-          <div class="form-group">
-            <label>HTML File <span class="required-mark" aria-hidden="true">*</span></label>
-
-            <!-- Drop zone -->
-            <div class="drop-zone" id="dropZone" tabindex="0" role="button"
-                 aria-label="Drop an HTML file here, or press Enter to browse">
-              <input type="file" id="fileInput" accept=".html,.htm"
-                     class="file-input-hidden" tabindex="-1" aria-hidden="true">
-
-              <!-- Default state -->
-              <div id="dropZoneIdle">
-                <svg class="drop-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 16V4m0 0L8 8m4-4 4 4"/>
-                  <path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
-                </svg>
-                <p class="drop-label">Drag an <code>.html</code> file here</p>
-                <p class="drop-hint">or <button type="button" class="browse-link" id="browseBtn">click to browse</button></p>
-              </div>
-
-              <!-- File selected state -->
-              <div id="dropZoneFile" hidden>
-                <svg class="drop-icon drop-icon--ok" aria-hidden="true" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                  <polyline points="9 15 11 17 15 13"/>
-                </svg>
-                <p class="drop-filename" id="dropFilename"></p>
-                <p class="drop-filesize" id="dropFilesize"></p>
-                <button type="button" class="file-clear-btn" id="fileClearBtn">&#10005; Remove</button>
-              </div>
+        <!-- Goal Section -->
+        <section id="goal" aria-labelledby="goal-heading">
+          <div class="container">
+            <div class="section-header">
+              <div class="accent-bar" aria-hidden="true"></div>
+              <h2 id="goal-heading">Our Goal</h2>
             </div>
-
-            <!-- Paste fallback -->
-            <details class="paste-fallback">
-              <summary>Or paste HTML directly</summary>
-              <textarea
-                id="htmlInput"
-                rows="12"
-                placeholder="Paste the complete HTML source here…"
-                spellcheck="false"
-                autocomplete="off"
-              ></textarea>
-            </details>
+            <div class="goal-content">
+              <blockquote>
+                <p>
+                  Reduce the time required to produce digital accessibility
+                  reports from hours to minutes using large language models, and
+                  automate the application of accessibility fixes to front-end
+                  code — making the web more accessible for people with visual
+                  impairments.
+                </p>
+              </blockquote>
+            </div>
           </div>
+        </section>
 
-          <div class="form-row">
+        <!-- Team Section -->
+        <section id="team" aria-labelledby="team-heading">
+          <div class="container">
+            <div class="section-header">
+              <div class="accent-bar" aria-hidden="true"></div>
+              <h2 id="team-heading">Our Team</h2>
+              <p>
+                Five Georgia Tech students working together to advance digital
+                accessibility.
+              </p>
+            </div>
+            <ul class="team-grid" role="list">
+              <li class="team-card">
+                <div class="team-card-initial" aria-hidden="true">AH</div>
+                <h3>Annika Hildebrandt</h3>
+                <p>Team Member</p>
+              </li>
+              <li class="team-card">
+                <div class="team-card-initial" aria-hidden="true">AY</div>
+                <h3>Andrew Yin</h3>
+                <p>Team Member</p>
+              </li>
+              <li class="team-card">
+                <div class="team-card-initial" aria-hidden="true">CN</div>
+                <h3>Cole Niblett</h3>
+                <p>Team Member</p>
+              </li>
+              <li class="team-card">
+                <div class="team-card-initial" aria-hidden="true">NF</div>
+                <h3>Nicholas Fulton</h3>
+                <p>Team Member</p>
+              </li>
+              <li class="team-card">
+                <div class="team-card-initial" aria-hidden="true">MM</div>
+                <h3>Mariana Mendez</h3>
+                <p>Team Member</p>
+              </li>
+            </ul>
+          </div>
+        </section>
 
-            <div class="form-group">
-              <label for="apiKeyInput">Anthropic API Key <span class="optional-mark">(optional)</span></label>
-              <input
-                type="password"
-                id="apiKeyInput"
-                name="api_key"
-                placeholder="sk-ant-api03-…"
-                autocomplete="off"
+        <!-- Deliverables Section -->
+        <section id="deliverables" aria-labelledby="deliverables-heading">
+          <div class="container">
+            <div class="section-header">
+              <div class="accent-bar" aria-hidden="true"></div>
+              <h2 id="deliverables-heading">Deliverables</h2>
+              <p>The key outputs our team is building for Vision Aid.</p>
+            </div>
+            <ol class="deliverables-list">
+              <li>
+                <strong>Accessibility Report Generator</strong> — Analyze static
+                webpage code for WCAG compliance issues and produce structured
+                reports with proposed fixes.
+              </li>
+              <li>
+                <strong>Automated Webpage Editor</strong> — Generate code-level
+                fixes for identified accessibility issues, enabling rapid
+                remediation.
+              </li>
+              <li>
+                <strong>Chrome Browser Extension</strong
+                ><span class="stretch">Stretch Goal</span> — Apply accessibility
+                fixes directly in-browser for end users.
+              </li>
+            </ol>
+          </div>
+        </section>
+
+        <!-- Lighthouse Scores Section -->
+        <section id="lighthouse" aria-labelledby="lighthouse-heading">
+          <div class="container">
+            <div class="section-header">
+              <div class="accent-bar" aria-hidden="true"></div>
+              <h2 id="lighthouse-heading">Lighthouse Scores</h2>
+              <p>
+                Measuring the quality of this website across four key
+                categories.
+              </p>
+            </div>
+            <div class="lighthouse-grid" role="list">
+              <div
+                class="lighthouse-card"
+                role="listitem"
+                aria-label="Performance score: 92 out of 100"
               >
-              <p class="field-hint">Without a key, only programmatic checks run. Your key is never stored or logged.</p>
+                <h3 aria-hidden="true">Performance</h3>
+                <span class="lighthouse-score" aria-hidden="true">92</span>
+              </div>
+              <div
+                class="lighthouse-card"
+                role="listitem"
+                aria-label="Accessibility score: 96 out of 100"
+              >
+                <h3 aria-hidden="true">Accessibility</h3>
+                <span class="lighthouse-score" aria-hidden="true">96</span>
+              </div>
+              <div
+                class="lighthouse-card"
+                role="listitem"
+                aria-label="Best Practices score: 100 out of 100"
+              >
+                <h3 aria-hidden="true">Best Practices</h3>
+                <span class="lighthouse-score" aria-hidden="true">100</span>
+              </div>
+              <div
+                class="lighthouse-card"
+                role="listitem"
+                aria-label="SEO score: 100 out of 100"
+              >
+                <h3 aria-hidden="true">SEO</h3>
+                <span class="lighthouse-score" aria-hidden="true">100</span>
+              </div>
             </div>
+            <p class="lighthouse-note">
+              Scores measured via Chrome DevTools Lighthouse on the home page.
+            </p>
+          </div>
+        </section>
+      </div>
 
-            <div class="form-group">
-              <label for="modelSelect">Model</label>
-              <select id="modelSelect" name="model">
-                <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 — faster, cheaper</option>
-                <option value="claude-sonnet-4-20250514">Claude Sonnet 4 — higher quality</option>
-              </select>
-            </div>
-
+      <section
+        id="auditTool"
+        class="audit-section"
+        hidden
+        aria-labelledby="audit-heading"
+      >
+        <div class="container">
+          <div class="section-header">
+            <div class="accent-bar" aria-hidden="true"></div>
+            <h2 id="audit-heading">Accessibility Audit Tool</h2>
+            <p>
+              Drop an HTML file to run a WCAG compliance analysis using the
+              project pipeline.
+            </p>
           </div>
 
-          <button type="submit" class="audit-btn" id="auditSubmitBtn">
-            Run Audit
-          </button>
+          <form id="auditForm" class="audit-form" novalidate>
+            <div class="form-group">
+              <label for="fileInput"
+                >HTML File
+                <span class="required-mark" aria-hidden="true">*</span
+                ><span class="sr-only">(required)</span></label
+              >
 
-        </form>
+              <div
+                class="drop-zone"
+                id="dropZone"
+                tabindex="0"
+                role="group"
+                aria-label="File upload area"
+              >
+                <input
+                  type="file"
+                  id="fileInput"
+                  accept=".html,.htm"
+                  class="file-input-hidden"
+                  aria-required="true"
+                />
 
-        <!-- Results area -->
-        <div id="auditResults" class="audit-results" style="display:none">
-          <div id="auditResultsContent" aria-live="polite"></div>
+                <!-- Default state -->
+                <div id="dropZoneIdle">
+                  <svg
+                    class="drop-icon"
+                    aria-hidden="true"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M12 16V4m0 0L8 8m4-4 4 4" />
+                    <path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+                  </svg>
+                  <p class="drop-label">Drag an <code>.html</code> file here</p>
+                  <p class="drop-hint">
+                    or
+                    <button type="button" class="browse-link" id="browseBtn">
+                      click to browse
+                    </button>
+                  </p>
+                </div>
+
+                <!-- File selected state -->
+                <div id="dropZoneFile" hidden>
+                  <svg
+                    class="drop-icon drop-icon--ok"
+                    aria-hidden="true"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                    />
+                    <polyline points="14 2 14 8 20 8" />
+                    <polyline points="9 15 11 17 15 13" />
+                  </svg>
+                  <p class="drop-filename" id="dropFilename"></p>
+                  <p class="drop-filesize" id="dropFilesize"></p>
+                  <button
+                    type="button"
+                    class="file-clear-btn"
+                    id="fileClearBtn"
+                    aria-label="Remove file"
+                  >
+                    &#10005; Remove
+                  </button>
+                </div>
+              </div>
+
+              <p
+                class="form-error"
+                id="fileError"
+                role="alert"
+                aria-live="assertive"
+                hidden
+              ></p>
+
+              <!-- Paste fallback -->
+              <details class="paste-fallback">
+                <summary>Or paste HTML directly</summary>
+                <textarea
+                  id="htmlInput"
+                  rows="12"
+                  placeholder="Paste the complete HTML source here…"
+                  spellcheck="false"
+                  autocomplete="off"
+                  aria-label="Paste HTML source code"
+                ></textarea>
+              </details>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="apiKeyInput"
+                  >Anthropic API Key
+                  <span class="optional-mark">(optional)</span></label
+                >
+
+                <input
+                  type="password"
+                  id="apiKeyInput"
+                  name="api_key"
+                  placeholder="sk-ant-api03-…"
+                  autocomplete="off"
+                  aria-describedby="apiKeyHint"
+                />
+                <p class="field-hint" id="apiKeyHint">
+                  Without a key, only programmatic checks run. Your key is never
+                  stored or logged.
+                </p>
+              </div>
+
+              <div class="form-group">
+                <label for="modelSelect">Model</label>
+                <select id="modelSelect" name="model">
+                  <option value="claude-haiku-4-5-20251001">
+                    Claude Haiku 4.5 — faster, cheaper
+                  </option>
+                  <option value="claude-sonnet-4-20250514">
+                    Claude Sonnet 4 — higher quality
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" class="audit-btn" id="auditSubmitBtn">
+              Run Audit
+            </button>
+          </form>
+
+          <!-- Results area -->
+          <div id="auditResults" class="audit-results" style="display: none">
+            <div id="auditResultsContent" aria-live="polite"></div>
+          </div>
         </div>
+      </section>
+      <!-- /#auditTool -->
+    </main>
 
+    <!-- Footer -->
+    <footer class="site-footer">
+      <div class="footer-inner container">
+        <p>Georgia Tech CS 6150 — Computing for Good</p>
+        <p>
+          Partner:
+          <a href="https://dat.visionaid.org/"
+            >Vision Aid Digital Accessibility Testing Team</a
+          >
+        </p>
+        <p>&copy; 2026</p>
       </div>
-    </section><!-- /#auditTool -->
+    </footer>
 
-  </main>
+    <script>
+      // ── Tab switching ──────────────────────────────────────────────────────────
+      const auditTabBtn = document.getElementById("auditTabBtn");
+      const projectContent = document.getElementById("projectContent");
+      const auditTool = document.getElementById("auditTool");
+      const brandLink = document.getElementById("projectBrandLink");
 
-  <!-- Footer -->
-  <footer class="site-footer">
-    <div class="footer-inner container">
-      <p>Georgia Tech CS 6150 — Computing for Good</p>
-      <p>Partner: <a href="https://dat.visionaid.org/">Vision Aid Digital Accessibility Testing Team</a></p>
-      <p>&copy; 2026</p>
-    </div>
-  </footer>
-
-  <script>
-    // ── Tab switching ──────────────────────────────────────────────────────────
-    const auditTabBtn    = document.getElementById('auditTabBtn');
-    const projectContent = document.getElementById('projectContent');
-    const auditTool      = document.getElementById('auditTool');
-    const brandLink      = document.getElementById('projectBrandLink');
-
-    function showAudit() {
-      projectContent.hidden = true;
-      auditTool.hidden      = false;
-      auditTabBtn.setAttribute('aria-pressed', 'true');
-      auditTabBtn.classList.add('active');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function showProject() {
-      projectContent.hidden = false;
-      auditTool.hidden      = true;
-      auditTabBtn.setAttribute('aria-pressed', 'false');
-      auditTabBtn.classList.remove('active');
-    }
-
-    auditTabBtn.addEventListener('click', () => {
-      auditTool.hidden ? showAudit() : showProject();
-    });
-
-    brandLink.addEventListener('click', showProject);
-    document.querySelectorAll('.project-nav-link').forEach(link => {
-      link.addEventListener('click', showProject);
-    });
-
-    // ── Drag-and-drop / file input ────────────────────────────────────────────
-    let htmlFileContent = null;
-
-    const dropZone     = document.getElementById('dropZone');
-    const fileInput    = document.getElementById('fileInput');
-    const browseBtn    = document.getElementById('browseBtn');
-    const fileClearBtn = document.getElementById('fileClearBtn');
-    const dropZoneIdle = document.getElementById('dropZoneIdle');
-    const dropZoneFile = document.getElementById('dropZoneFile');
-    const dropFilename = document.getElementById('dropFilename');
-    const dropFilesize = document.getElementById('dropFilesize');
-
-    function loadFile(file) {
-      if (!file || !file.name.match(/\.html?$/i)) {
-        alert('Please drop an .html or .htm file.');
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        htmlFileContent          = ev.target.result;
-        dropFilename.textContent = file.name;
-        dropFilesize.textContent = formatBytes(file.size);
-        dropZoneIdle.hidden      = true;
-        dropZoneFile.hidden      = false;
-        dropZone.classList.add('has-file');
-      };
-      reader.readAsText(file, 'utf-8');
-    }
-
-    function clearFile() {
-      htmlFileContent         = null;
-      fileInput.value         = '';
-      dropZoneIdle.hidden     = false;
-      dropZoneFile.hidden     = true;
-      dropZone.classList.remove('has-file', 'drag-over');
-    }
-
-    function formatBytes(n) {
-      if (n < 1024) return n + ' B';
-      if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
-      return (n / (1024 * 1024)).toFixed(1) + ' MB';
-    }
-
-    browseBtn.addEventListener('click', () => fileInput.click());
-    fileClearBtn.addEventListener('click', clearFile);
-    fileInput.addEventListener('change', () => { if (fileInput.files[0]) loadFile(fileInput.files[0]); });
-
-    dropZone.addEventListener('keydown', (e) => {
-      if ((e.key === 'Enter' || e.key === ' ') && !htmlFileContent) {
-        e.preventDefault();
-        fileInput.click();
-      }
-    });
-
-    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('drag-over');
-      if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
-    });
-
-    document.getElementById('auditTool').addEventListener('dragover', (e) => e.preventDefault());
-    document.getElementById('auditTool').addEventListener('drop', (e) => {
-      e.preventDefault();
-      if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
-    });
-
-    // ── Audit form submission ─────────────────────────────────────────────────
-    document.getElementById('auditForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const htmlContent = htmlFileContent || document.getElementById('htmlInput').value.trim();
-      const apiKey      = document.getElementById('apiKeyInput').value.trim();
-      const model       = document.getElementById('modelSelect').value;
-
-      if (!htmlContent) {
-        alert('Please drop an HTML file or paste HTML before running the audit.');
-        dropZone.focus();
-        return;
+      function showAudit() {
+        projectContent.hidden = true;
+        auditTool.hidden = false;
+        auditTabBtn.setAttribute("aria-pressed", "true");
+        auditTabBtn.classList.add("active");
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
 
-      const submitBtn      = document.getElementById('auditSubmitBtn');
-      const resultsSection = document.getElementById('auditResults');
-      const content        = document.getElementById('auditResultsContent');
+      function showProject() {
+        projectContent.hidden = false;
+        auditTool.hidden = true;
+        auditTabBtn.setAttribute("aria-pressed", "false");
+        auditTabBtn.classList.remove("active");
+      }
 
-      submitBtn.disabled    = true;
-      submitBtn.textContent = 'Running\u2026';
-      resultsSection.style.display = 'none';
-      content.innerHTML = '';
+      auditTabBtn.addEventListener("click", () => {
+        auditTool.hidden ? showAudit() : showProject();
+      });
 
-      try {
-        const res = await fetch('/api/audit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ html_content: htmlContent, api_key: apiKey, model }),
-        });
+      brandLink.addEventListener("click", showProject);
+      document.querySelectorAll(".project-nav-link").forEach((link) => {
+        link.addEventListener("click", showProject);
+      });
 
-        const data = await res.json().catch(() => ({
-          success: false,
-          error: `HTTP ${res.status} \u2014 invalid JSON response`,
-        }));
+      // ── Drag-and-drop / file input ────────────────────────────────────────────
+      let htmlFileContent = null;
 
-        if (!data.success) throw new Error(data.error || 'Unknown error from server');
+      const dropZone = document.getElementById("dropZone");
+      const fileInput = document.getElementById("fileInput");
+      const browseBtn = document.getElementById("browseBtn");
+      const fileClearBtn = document.getElementById("fileClearBtn");
+      const dropZoneIdle = document.getElementById("dropZoneIdle");
+      const dropZoneFile = document.getElementById("dropZoneFile");
+      const dropFilename = document.getElementById("dropFilename");
+      const dropFilesize = document.getElementById("dropFilesize");
+      const fileError = document.getElementById("fileError");
 
-        content.innerHTML = renderResults(data);
-        resultsSection.style.display = 'block';
+      function showError(msg) {
+        fileError.hidden = false;
+        fileError.textContent = msg;
+      }
 
-        // Wire up LLM accordion toggles
-        content.querySelectorAll('.llm-prompt-header').forEach(header => {
-          const toggle = () => {
-            const prompt = header.closest('.llm-prompt');
-            const isOpen = prompt.classList.toggle('open');
-            header.setAttribute('aria-expanded', String(isOpen));
-            prompt.querySelector('.llm-prompt-body').hidden = !isOpen;
-          };
-          header.addEventListener('click', toggle);
-          header.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
-          });
-        });
+      function clearError() {
+        fileError.textContent = "";
+        fileError.hidden = true;
+      }
 
-        // Wire up CSV download
-        const dlBtn = document.getElementById('downloadReportBtn');
-        if (dlBtn) {
-          dlBtn.addEventListener('click', () => {
-            const blob = new Blob([data.csv_report], { type: 'text/csv;charset=utf-8;' });
-            const url  = URL.createObjectURL(blob);
-            const a    = document.createElement('a');
-            a.href     = url;
-            a.download = `accessibility-report-${new Date().toISOString().slice(0, 10)}.csv`;
-            a.click();
-            URL.revokeObjectURL(url);
-          });
+      function loadFile(file) {
+        clearError();
+        if (!file || !file.name.match(/\.html?$/i)) {
+          showError("Please select an .html or .htm file.");
+          return;
         }
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          htmlFileContent = ev.target.result;
+          dropFilename.textContent = file.name;
+          dropFilesize.textContent = formatBytes(file.size);
+          dropZoneIdle.hidden = true;
+          dropZoneFile.hidden = false;
+          dropZone.classList.add("has-file");
+        };
+        reader.readAsText(file, "utf-8");
+      }
 
-      } catch (err) {
-        content.innerHTML = `
+      function clearFile() {
+        htmlFileContent = null;
+        fileInput.value = "";
+        dropZoneIdle.hidden = false;
+        dropZoneFile.hidden = true;
+        dropZone.classList.remove("has-file", "drag-over");
+        clearError();
+      }
+
+      function formatBytes(n) {
+        if (n < 1024) return n + " B";
+        if (n < 1024 * 1024) return (n / 1024).toFixed(1) + " KB";
+        return (n / (1024 * 1024)).toFixed(1) + " MB";
+      }
+
+      browseBtn.addEventListener("click", () => fileInput.click());
+      fileClearBtn.addEventListener("click", clearFile);
+      fileInput.addEventListener("change", () => {
+        if (fileInput.files[0]) loadFile(fileInput.files[0]);
+      });
+
+      dropZone.addEventListener("keydown", (e) => {
+        if ((e.key === "Enter" || e.key === " ") && !htmlFileContent) {
+          e.preventDefault();
+          fileInput.click();
+        }
+      });
+
+      dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropZone.classList.add("drag-over");
+      });
+      dropZone.addEventListener("dragleave", () =>
+        dropZone.classList.remove("drag-over")
+      );
+      dropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropZone.classList.remove("drag-over");
+        if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
+      });
+
+      document
+        .getElementById("auditTool")
+        .addEventListener("dragover", (e) => e.preventDefault());
+      document.getElementById("auditTool").addEventListener("drop", (e) => {
+        e.preventDefault();
+        if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
+      });
+
+      // ── Audit form submission ─────────────────────────────────────────────────
+      document
+        .getElementById("auditForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          clearError();
+
+          const htmlContent =
+            htmlFileContent ||
+            document.getElementById("htmlInput").value.trim();
+          const apiKey = document.getElementById("apiKeyInput").value.trim();
+          const model = document.getElementById("modelSelect").value;
+
+          if (!htmlContent) {
+            showError(
+              "Please drop an HTML file or paste HTML before running the audit."
+            );
+            fileInput.focus();
+            return;
+          }
+
+          const submitBtn = document.getElementById("auditSubmitBtn");
+          const resultsSection = document.getElementById("auditResults");
+          const content = document.getElementById("auditResultsContent");
+
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Running\u2026";
+          submitBtn.setAttribute("aria-busy", "true");
+          resultsSection.style.display = "none";
+          content.innerHTML = "";
+
+          try {
+            const res = await fetch("/api/audit", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                html_content: htmlContent,
+                api_key: apiKey,
+                model,
+              }),
+            });
+
+            const data = await res.json().catch(() => ({
+              success: false,
+              error: `HTTP ${res.status} \u2014 invalid JSON response`,
+            }));
+
+            if (!data.success)
+              throw new Error(data.error || "Unknown error from server");
+
+            content.innerHTML = renderResults(data);
+            resultsSection.style.display = "block";
+
+            // Wire up LLM accordion toggles
+            content.querySelectorAll(".llm-prompt-header").forEach((header) => {
+              const toggle = () => {
+                const prompt = header.closest(".llm-prompt");
+                const isOpen = prompt.classList.toggle("open");
+                header.setAttribute("aria-expanded", String(isOpen));
+                prompt.querySelector(".llm-prompt-body").hidden = !isOpen;
+              };
+              header.addEventListener("click", toggle);
+              header.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  toggle();
+                }
+              });
+            });
+
+            // Wire up CSV download
+            const dlBtn = document.getElementById("downloadReportBtn");
+            if (dlBtn) {
+              dlBtn.addEventListener("click", () => {
+                const blob = new Blob([data.csv_report], {
+                  type: "text/csv;charset=utf-8;",
+                });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `accessibility-report-${new Date()
+                  .toISOString()
+                  .slice(0, 10)}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+              });
+            }
+          } catch (err) {
+            content.innerHTML = `
           <div class="audit-error" role="alert">
             <strong>Could not reach the audit server.</strong><br>
             ${esc(err.message)}<br><br>
             Make sure the server is running:
             <code>python entry_points/api_server.py</code>
           </div>`;
-        resultsSection.style.display = 'block';
-      } finally {
-        submitBtn.disabled    = false;
-        submitBtn.textContent = 'Run Audit';
+            resultsSection.style.display = "block";
+          } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Run Audit";
+            submitBtn.removeAttribute("aria-busy");
+          }
+        });
+
+      // ── Helpers ───────────────────────────────────────────────────────────────
+
+      function esc(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
       }
-    });
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
-    function esc(str) {
-      return String(str)
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
-    function extractIssues(parsed) {
-      if (!parsed) return [];
-      if (Array.isArray(parsed)) return parsed;
-      for (const key of ['issues', 'findings', 'problems', 'violations']) {
-        if (Array.isArray(parsed[key])) return parsed[key];
+      function extractIssues(parsed) {
+        if (!parsed) return [];
+        if (Array.isArray(parsed)) return parsed;
+        for (const key of ["issues", "findings", "problems", "violations"]) {
+          if (Array.isArray(parsed[key])) return parsed[key];
+        }
+        return [];
       }
-      return [];
-    }
 
-    function issueCount(parsed) {
-      const issues = extractIssues(parsed);
-      if (issues.length > 0) return issues.length;
-      if (parsed && typeof parsed === 'object') {
-        return Object.entries(parsed).filter(([k, v]) => k.startsWith('is_') && v === false).length;
+      function issueCount(parsed) {
+        const issues = extractIssues(parsed);
+        if (issues.length > 0) return issues.length;
+        if (parsed && typeof parsed === "object") {
+          return Object.entries(parsed).filter(
+            ([k, v]) => k.startsWith("is_") && v === false
+          ).length;
+        }
+        return 0;
       }
-      return 0;
-    }
 
-    function statCard(value, label) {
-      return `<div class="summary-stat">
+      function statCard(value, label) {
+        return `<div class="summary-stat">
         <span class="stat-num">${esc(String(value))}</span>
         <span class="stat-label">${esc(label)}</span>
       </div>`;
-    }
-
-    // ── LLM result formatting ─────────────────────────────────────────────────
-
-    /** Render one issue item (from an array-type prompt response). */
-    function renderIssueCard(item) {
-      if (typeof item === 'string') return `<div class="issue-card"><p class="issue-desc">${esc(item)}</p></div>`;
-      if (typeof item !== 'object' || item === null) return `<div class="issue-card"><p>${esc(String(item))}</p></div>`;
-
-      const shown = new Set();
-      let html = '<div class="issue-card">';
-
-      // Main description — pick first available key
-      for (const k of ['issue', 'problem', 'description', 'reason', 'text', 'finding']) {
-        if (item[k]) {
-          html += `<p class="issue-desc">${esc(item[k])}</p>`;
-          shown.add(k);
-          break;
-        }
       }
 
-      // Element / selector
-      for (const k of ['element', 'selector', 'xpath', 'path', 'tag']) {
-        if (item[k]) {
-          html += `<code class="issue-element">${esc(item[k])}</code>`;
-          shown.add(k);
-          break;
+      // ── LLM result formatting ─────────────────────────────────────────────────
+
+      function renderIssueCard(item) {
+        if (typeof item === "string")
+          return `<div class="issue-card"><p class="issue-desc">${esc(
+            item
+          )}</p></div>`;
+        if (typeof item !== "object" || item === null)
+          return `<div class="issue-card"><p>${esc(String(item))}</p></div>`;
+
+        const shown = new Set();
+        let html = '<div class="issue-card">';
+
+        for (const k of [
+          "issue",
+          "problem",
+          "description",
+          "reason",
+          "text",
+          "finding",
+        ]) {
+          if (item[k]) {
+            html += `<p class="issue-desc">${esc(item[k])}</p>`;
+            shown.add(k);
+            break;
+          }
         }
+
+        for (const k of ["element", "selector", "xpath", "path", "tag"]) {
+          if (item[k]) {
+            html += `<code class="issue-element">${esc(item[k])}</code>`;
+            shown.add(k);
+            break;
+          }
+        }
+
+        for (const k of [
+          "recommendation",
+          "suggestion",
+          "fix",
+          "remedy",
+          "proposed_fix",
+        ]) {
+          if (item[k]) {
+            html += `<p class="issue-fix"><strong>Fix:</strong> ${esc(
+              item[k]
+            )}</p>`;
+            shown.add(k);
+            break;
+          }
+        }
+
+        const rest = Object.entries(item).filter(([k]) => !shown.has(k));
+        if (rest.length) {
+          html += '<dl class="issue-meta">';
+          for (const [k, v] of rest) {
+            const val = typeof v === "string" ? v : JSON.stringify(v);
+            html += `<dt>${esc(k)}</dt><dd>${esc(val)}</dd>`;
+          }
+          html += "</dl>";
+        }
+
+        html += "</div>";
+        return html;
       }
 
-      // Recommendation / fix
-      for (const k of ['recommendation', 'suggestion', 'fix', 'remedy', 'proposed_fix']) {
-        if (item[k]) {
-          html += `<p class="issue-fix"><strong>Fix:</strong> ${esc(item[k])}</p>`;
-          shown.add(k);
-          break;
-        }
-      }
-
-      // Remaining fields as a compact meta list
-      const rest = Object.entries(item).filter(([k]) => !shown.has(k));
-      if (rest.length) {
-        html += '<dl class="issue-meta">';
-        for (const [k, v] of rest) {
-          const val = typeof v === 'string' ? v : JSON.stringify(v);
-          html += `<dt>${esc(k)}</dt><dd>${esc(val)}</dd>`;
-        }
-        html += '</dl>';
-      }
-
-      html += '</div>';
-      return html;
-    }
-
-    /** Render an object-type prompt response (booleans + issues array). */
-    function renderObjectResponse(parsed) {
-      let html = '<div class="llm-object">';
-      for (const [key, val] of Object.entries(parsed)) {
-        if (typeof val === 'boolean') {
-          const ok = val;
-          html += `<div class="llm-obj-row">
-            <span class="check-icon ${ok ? 'check-ok' : 'check-fail'}" aria-label="${ok ? 'pass' : 'fail'}">${ok ? '\u2713' : '\u2717'}</span>
-            <span class="llm-obj-key">${esc(key.replace(/_/g, ' '))}</span>
-          </div>`;
-        } else if (Array.isArray(val)) {
-          if (val.length === 0) {
+      function renderObjectResponse(parsed) {
+        let html = '<div class="llm-object">';
+        for (const [key, val] of Object.entries(parsed)) {
+          if (typeof val === "boolean") {
+            const ok = val;
             html += `<div class="llm-obj-row">
+            <span class="check-icon ${
+              ok ? "check-ok" : "check-fail"
+            }" aria-label="${ok ? "pass" : "fail"}">${
+              ok ? "\u2713" : "\u2717"
+            }</span>
+            <span class="llm-obj-key">${esc(key.replace(/_/g, " "))}</span>
+          </div>`;
+          } else if (Array.isArray(val)) {
+            if (val.length === 0) {
+              html += `<div class="llm-obj-row">
               <span class="check-icon check-ok" aria-label="pass">\u2713</span>
-              <span class="llm-obj-key">${esc(key.replace(/_/g, ' '))}</span>
+              <span class="llm-obj-key">${esc(key.replace(/_/g, " "))}</span>
               <span class="llm-obj-empty">none</span>
             </div>`;
-          } else {
-            html += `<div class="llm-obj-section">
-              <p class="llm-obj-section-label">${esc(key.replace(/_/g, ' '))} (${val.length})</p>`;
-            html += val.map(v => (typeof v === 'object' ? renderIssueCard(v) : `<div class="issue-card"><p class="issue-desc">${esc(String(v))}</p></div>`)).join('');
-            html += '</div>';
-          }
-        } else if (typeof val === 'string' && val) {
-          html += `<div class="llm-obj-row llm-obj-string">
-            <span class="llm-obj-key">${esc(key.replace(/_/g, ' '))}</span>
+            } else {
+              html += `<div class="llm-obj-section">
+              <p class="llm-obj-section-label">${esc(
+                key.replace(/_/g, " ")
+              )} (${val.length})</p>`;
+              html += val
+                .map((v) =>
+                  typeof v === "object"
+                    ? renderIssueCard(v)
+                    : `<div class="issue-card"><p class="issue-desc">${esc(
+                        String(v)
+                      )}</p></div>`
+                )
+                .join("");
+              html += "</div>";
+            }
+          } else if (typeof val === "string" && val) {
+            html += `<div class="llm-obj-row llm-obj-string">
+            <span class="llm-obj-key">${esc(key.replace(/_/g, " "))}</span>
             <span class="llm-obj-val">${esc(val)}</span>
           </div>`;
-        }
-      }
-      html += '</div>';
-      return html;
-    }
-
-    /** Top-level LLM response renderer — handles array or object. */
-    function renderLLMBody(parsed) {
-      if (!parsed) return '<p class="llm-empty">No response data.</p>';
-      if (parsed.raw) return `<pre class="llm-json">${esc(parsed.raw)}</pre>`;
-      if (Array.isArray(parsed)) {
-        return parsed.length === 0
-          ? '<p class="llm-empty">\u2713 No issues found.</p>'
-          : parsed.map(renderIssueCard).join('');
-      }
-      return renderObjectResponse(parsed);
-    }
-
-    // ── Main results renderer ─────────────────────────────────────────────────
-
-    function renderResults(data) {
-      const s = data.summary;
-      let html = '';
-
-      // Summary stats
-      html += '<div class="audit-summary">';
-      html += statCard(s.programmatic_count, 'Programmatic Issues');
-      html += statCard(s.llm_prompts_run, 'LLM Prompts Run');
-      if (s.llm_prompts_skipped > 0) html += statCard(s.llm_prompts_skipped, 'Prompts Skipped');
-      if (s.estimated_cost_usd != null) html += statCard('$' + s.estimated_cost_usd.toFixed(4), 'Est. Cost');
-      html += '</div>';
-
-      if (s.dry_run) {
-        html += '<p class="audit-notice">No API key provided \u2014 LLM analysis was skipped. Only programmatic findings are shown.</p>';
-      }
-
-      // Programmatic findings
-      html += '<div class="findings-section">';
-      html += `<h3>Programmatic Findings <span class="findings-count">${data.programmatic_findings.length}</span></h3>`;
-      if (data.programmatic_findings.length === 0) {
-        html += '<p class="findings-empty">\u2713 No programmatic issues found.</p>';
-      } else {
-        html += '<div class="findings-table-wrapper"><table class="findings-table"><thead><tr><th>Rule ID</th><th>Rule Name</th><th>Description</th></tr></thead><tbody>';
-        for (const f of data.programmatic_findings) {
-          html += `<tr>
-            <td><code class="rule-id">${esc(f.rule_id || '')}</code></td>
-            <td>${esc(f.rule_name || '')}</td>
-            <td>${esc(f.description || '')}</td>
-          </tr>`;
-        }
-        html += '</tbody></table></div>';
-      }
-      html += '</div>';
-
-      // LLM findings — fully expanded
-      const llmEntries = Object.entries(data.llm_results || {});
-      if (llmEntries.length > 0) {
-        html += '<div class="findings-section">';
-        html += `<h3>LLM Analysis <span class="findings-count">${llmEntries.length} prompt${llmEntries.length !== 1 ? 's' : ''}</span></h3>`;
-        html += '<div class="llm-findings">';
-        for (const [name, result] of llmEntries) {
-          const wcag = (result.wcag_criteria || []).slice(0, 5);
-          const issues = extractIssues(result.parsed);
-          const issueN = issueCount(result.parsed);
-
-          html += '<div class="llm-prompt">';
-
-          // Header row — acts as accordion toggle
-          html += '<div class="llm-prompt-header" role="button" tabindex="0" aria-expanded="false">';
-          html += `<span class="llm-prompt-name">${esc(name.replace(/_/g, ' '))}</span>`;
-          html += '<div class="llm-prompt-tags">';
-          if (result.checklist) html += `<span class="llm-checklist-tag">${esc(result.checklist)}</span>`;
-          for (const c of wcag) html += `<span class="wcag-tag">${esc(c)}</span>`;
-          if (result.status === 'dry_run') {
-            html += '<span class="llm-badge dry-run">dry run</span>';
-          } else if (issueN > 0) {
-            html += `<span class="llm-badge has-issues">${issueN} issue${issueN !== 1 ? 's' : ''}</span>`;
-          } else if (result.parsed) {
-            html += '<span class="llm-badge pass">pass</span>';
           }
-          html += '</div>'; // .llm-prompt-tags
-          html += '<svg class="llm-chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
-          html += '</div>'; // .llm-prompt-header
-
-          // Body — collapsed by default
-          html += '<div class="llm-prompt-body" hidden>';
-          html += renderLLMBody(result.parsed);
-          html += '</div>';
-
-          html += '</div>'; // .llm-prompt
         }
-        html += '</div>'; // .llm-findings
-        html += '</div>'; // .findings-section
+        html += "</div>";
+        return html;
       }
 
-      // Download button (only when CSV was generated, i.e. LLM ran)
-      if (data.csv_report) {
-        const llmCount = Object.keys(data.llm_results || {}).length;
-        const total    = data.programmatic_findings.length + llmCount;
-        html += `<div class="download-section">
+      function renderLLMBody(parsed) {
+        if (!parsed) return '<p class="llm-empty">No response data.</p>';
+        if (parsed.raw) return `<pre class="llm-json">${esc(parsed.raw)}</pre>`;
+        if (Array.isArray(parsed)) {
+          return parsed.length === 0
+            ? '<p class="llm-empty">\u2713 No issues found.</p>'
+            : parsed.map(renderIssueCard).join("");
+        }
+        return renderObjectResponse(parsed);
+      }
+
+      // ── Main results renderer ─────────────────────────────────────────────────
+
+      function renderResults(data) {
+        const s = data.summary;
+        let html = "";
+
+        html += '<div class="audit-summary">';
+        html += statCard(s.programmatic_count, "Programmatic Issues");
+        html += statCard(s.llm_prompts_run, "LLM Prompts Run");
+        if (s.llm_prompts_skipped > 0)
+          html += statCard(s.llm_prompts_skipped, "Prompts Skipped");
+        if (s.estimated_cost_usd != null)
+          html += statCard("$" + s.estimated_cost_usd.toFixed(4), "Est. Cost");
+        html += "</div>";
+
+        if (s.dry_run) {
+          html +=
+            '<p class="audit-notice">No API key provided \u2014 LLM analysis was skipped. Only programmatic findings are shown.</p>';
+        }
+
+        html += '<div class="findings-section">';
+        html += `<h3>Programmatic Findings <span class="findings-count">${data.programmatic_findings.length}</span></h3>`;
+        if (data.programmatic_findings.length === 0) {
+          html +=
+            '<p class="findings-empty">\u2713 No programmatic issues found.</p>';
+        } else {
+          html +=
+            '<div class="findings-table-wrapper"><table class="findings-table"><thead><tr><th scope="col">Rule ID</th><th scope="col">Rule Name</th><th scope="col">Description</th></tr></thead><tbody>';
+          for (const f of data.programmatic_findings) {
+            html += `<tr>
+            <td><code class="rule-id">${esc(f.rule_id || "")}</code></td>
+            <td>${esc(f.rule_name || "")}</td>
+            <td>${esc(f.description || "")}</td>
+          </tr>`;
+          }
+          html += "</tbody></table></div>";
+        }
+        html += "</div>";
+
+        const llmEntries = Object.entries(data.llm_results || {});
+        if (llmEntries.length > 0) {
+          html += '<div class="findings-section">';
+          html += `<h3>LLM Analysis <span class="findings-count">${
+            llmEntries.length
+          } prompt${llmEntries.length !== 1 ? "s" : ""}</span></h3>`;
+          html += '<div class="llm-findings">';
+          for (const [name, result] of llmEntries) {
+            const wcag = (result.wcag_criteria || []).slice(0, 5);
+            const issues = extractIssues(result.parsed);
+            const issueN = issueCount(result.parsed);
+
+            html += '<div class="llm-prompt">';
+
+            html +=
+              '<div class="llm-prompt-header" role="button" tabindex="0" aria-expanded="false">';
+            html += `<span class="llm-prompt-name">${esc(
+              name.replace(/_/g, " ")
+            )}</span>`;
+            html += '<div class="llm-prompt-tags">';
+            if (result.checklist)
+              html += `<span class="llm-checklist-tag">${esc(
+                result.checklist
+              )}</span>`;
+            for (const c of wcag)
+              html += `<span class="wcag-tag">${esc(c)}</span>`;
+            if (result.status === "dry_run") {
+              html += '<span class="llm-badge dry-run">dry run</span>';
+            } else if (issueN > 0) {
+              html += `<span class="llm-badge has-issues">${issueN} issue${
+                issueN !== 1 ? "s" : ""
+              }</span>`;
+            } else if (result.parsed) {
+              html += '<span class="llm-badge pass">pass</span>';
+            }
+            html += "</div>";
+            html +=
+              '<svg class="llm-chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+            html += "</div>";
+
+            html += '<div class="llm-prompt-body" hidden>';
+            html += renderLLMBody(result.parsed);
+            html += "</div>";
+
+            html += "</div>";
+          }
+          html += "</div>";
+          html += "</div>";
+        }
+
+        if (data.csv_report) {
+          const llmCount = Object.keys(data.llm_results || {}).length;
+          const total = data.programmatic_findings.length + llmCount;
+          html += `<div class="download-section">
           <p class="download-desc">Full report ready \u2014 ${total} findings across programmatic checks and ${llmCount} LLM prompts.</p>
           <button class="download-btn" id="downloadReportBtn">
             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -687,11 +900,10 @@
             Download Report (CSV)
           </button>
         </div>`;
+        }
+
+        return html;
       }
-
-      return html;
-    }
-  </script>
-
-</body>
+    </script>
+  </body>
 </html>

@@ -1,6 +1,6 @@
 /* ============================================
    P5: Automating Digital Accessibility
-   Team Website Styles
+   Team Website Styles — WCAG-fixed
    ============================================ */
 
 /* --- Reset & Base --- */
@@ -43,9 +43,25 @@ body {
   top: 0;
 }
 
+/* --- Screen-reader-only utility (WCAG addition) --- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* --- Focus Styles --- */
 a:focus-visible,
-button:focus-visible {
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
   outline: 3px solid #E8A838;
   outline-offset: 2px;
   border-radius: 2px;
@@ -167,7 +183,7 @@ a:hover {
 
 .hero-partner {
   font-size: 0.9375rem;
-  color: #666;
+  color: #595959;
 }
 
 .hero-partner a {
@@ -183,6 +199,18 @@ a:hover {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* --- Prefers reduced motion --- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
@@ -230,6 +258,8 @@ section:nth-child(even) {
   gap: 24px;
   max-width: 900px;
   margin: 0 auto;
+  list-style: none;
+  padding: 0;
 }
 
 .team-card {
@@ -264,7 +294,7 @@ section:nth-child(even) {
 
 .team-card p {
   font-size: 0.875rem;
-  color: #666;
+  color: #595959;
   margin-bottom: 0;
 }
 
@@ -350,7 +380,7 @@ section:nth-child(even) {
 .lighthouse-note {
   text-align: center;
   font-size: 0.875rem;
-  color: #888;
+  color: #636363;
   font-style: italic;
   max-width: 600px;
   margin: 0 auto;
@@ -551,7 +581,7 @@ section:nth-child(even) {
 
 .optional-mark {
   font-weight: 400;
-  color: #888;
+  color: #636363;
   font-size: 0.875em;
 }
 
@@ -595,8 +625,20 @@ section:nth-child(even) {
 
 .field-hint {
   font-size: 0.8125rem;
-  color: #777;
+  color: #636363;
   margin: 6px 0 0;
+}
+
+/* --- Inline form error (WCAG 3.3.1 addition) --- */
+.form-error {
+  color: #b91c1c;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 4px;
 }
 
 /* --- Drop zone --- */
@@ -612,10 +654,9 @@ section:nth-child(even) {
 }
 
 .drop-zone:hover,
-.drop-zone:focus-visible {
+.drop-zone:focus-within {
   border-color: #0D7377;
   background: #f4fafa;
-  outline: none;
 }
 
 .drop-zone.drag-over {
@@ -644,7 +685,7 @@ section:nth-child(even) {
 .drop-icon {
   width: 36px;
   height: 36px;
-  color: #aaa;
+  color: #636363;
   margin: 0 auto 12px;
   display: block;
   transition: color 0.18s ease;
@@ -674,7 +715,7 @@ section:nth-child(even) {
 
 .drop-hint {
   font-size: 0.875rem;
-  color: #888;
+  color: #636363;
   margin: 0;
 }
 
@@ -704,14 +745,14 @@ section:nth-child(even) {
 
 .drop-filesize {
   font-size: 0.8125rem;
-  color: #888;
+  color: #636363;
   margin: 0 0 14px;
 }
 
 .file-clear-btn {
   background: none;
   border: 1px solid #d0ceca;
-  color: #666;
+  color: #555;
   font-family: 'DM Sans', sans-serif;
   font-size: 0.8125rem;
   padding: 4px 12px;
@@ -732,7 +773,7 @@ section:nth-child(even) {
 
 .paste-fallback summary {
   font-size: 0.8125rem;
-  color: #888;
+  color: #636363;
   cursor: pointer;
   user-select: none;
   padding: 4px 0;
@@ -753,7 +794,7 @@ section:nth-child(even) {
 }
 
 .paste-fallback summary:hover {
-  color: #555;
+  color: #444;
 }
 
 .paste-fallback textarea {
@@ -843,7 +884,7 @@ section:nth-child(even) {
 .stat-label {
   display: block;
   font-size: 0.8125rem;
-  color: #777;
+  color: #636363;
 }
 
 .audit-notice {
@@ -882,7 +923,7 @@ section:nth-child(even) {
 }
 
 .findings-empty {
-  color: #777;
+  color: #636363;
   font-style: italic;
   font-size: 0.9rem;
   margin: 0;
@@ -1020,7 +1061,7 @@ section:nth-child(even) {
 .llm-chevron {
   width: 16px;
   height: 16px;
-  color: #888;
+  color: #636363;
   flex-shrink: 0;
   margin-left: 4px;
   transition: transform 0.2s ease;
@@ -1146,7 +1187,7 @@ section:nth-child(even) {
 }
 
 .issue-meta dt {
-  color: #888;
+  color: #636363;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -1217,7 +1258,7 @@ section:nth-child(even) {
 
 .llm-obj-empty {
   font-size: 0.75rem;
-  color: #aaa;
+  color: #636363;
   background: #f0efec;
   padding: 1px 8px;
   border-radius: 8px;
@@ -1237,7 +1278,7 @@ section:nth-child(even) {
 }
 
 .llm-empty {
-  color: #777;
+  color: #636363;
   font-style: italic;
   font-size: 0.9rem;
   margin: 0;
@@ -1260,13 +1301,13 @@ section:nth-child(even) {
 
 /* --- Skipped prompts --- */
 .skipped-section h3 {
-  color: #888;
+  color: #636363;
 }
 
 .skipped-list {
   list-style: none;
   font-size: 0.875rem;
-  color: #888;
+  color: #636363;
   line-height: 1.8;
   padding: 0;
   margin: 0;
