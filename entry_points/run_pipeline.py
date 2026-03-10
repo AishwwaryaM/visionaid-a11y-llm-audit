@@ -58,6 +58,14 @@ MODEL_PRICING = {
     "claude-haiku-4": (0.80, 4.00),
     "claude-3-5-sonnet": (3.00, 15.00),
     "claude-3-5-haiku": (0.80, 4.00),
+    "gpt-4o": (2.50, 10.00),
+    "gpt-4o-mini": (0.15, 0.60),
+    "gpt-4.1": (2.00, 8.00),
+    "gpt-4.1-mini": (0.40, 1.60),
+    "gpt-4.1-nano": (0.10, 0.40),
+    "o3": (2.00, 8.00),
+    "o3-mini": (1.10, 4.40),
+    "o4-mini": (1.10, 4.40),
 }
 
 
@@ -89,18 +97,26 @@ def estimate_tokens(text: str) -> int:
 
 
 class PipelineClient:
-    """Thin wrapper around the Anthropic API that reuses a single client instance.
+    """Thin wrapper around the Anthropic or OpenAI API.
 
-    Returns the same dict shape as the old ``call_api()`` function so
-    ``generate_report.py`` continues working unchanged.
+    Detects the provider from the model ID and uses the appropriate SDK.
+    Returns the same dict shape regardless of provider so downstream code
+    (``generate_report.py``, etc.) works unchanged.
     """
 
     def __init__(self, api_key: str, model: str, max_tokens: int = 8192):
-        import anthropic
+        from processing_scripts.llm_client.client import is_openai_model
 
-        self._client = anthropic.Anthropic(api_key=api_key)
         self.model = model
         self.max_tokens = max_tokens
+        self._is_openai = is_openai_model(model)
+
+        if self._is_openai:
+            import openai
+            self._client = openai.OpenAI(api_key=api_key)
+        else:
+            import anthropic
+            self._client = anthropic.Anthropic(api_key=api_key)
 
     def call(self, prompt: str) -> dict:
         """Send *prompt* to the API and return a result dict.
@@ -111,35 +127,61 @@ class PipelineClient:
         start = time.time()
 
         try:
-            message = self._client.messages.create(
-                model=self.model,
-                max_tokens=self.max_tokens,
-                temperature=0.1,
-                messages=[{"role": "user", "content": prompt}],
-            )
-
-            response_text = "".join(
-                block.text for block in message.content if block.type == "text"
-            )
-
-            return {
-                "success": True,
-                "response": response_text,
-                "model": message.model,
-                "usage": {
-                    "input_tokens": message.usage.input_tokens,
-                    "output_tokens": message.usage.output_tokens,
-                },
-                "stop_reason": message.stop_reason,
-                "duration_seconds": round(time.time() - start, 2),
-            }
-
+            if self._is_openai:
+                return self._call_openai(prompt, start)
+            return self._call_anthropic(prompt, start)
         except Exception as e:
             return {
                 "success": False,
                 "error": str(e),
                 "duration_seconds": round(time.time() - start, 2),
             }
+
+    def _call_anthropic(self, prompt: str, start: float) -> dict:
+        """Call the Anthropic Messages API."""
+        message = self._client.messages.create(
+            model=self.model,
+            max_tokens=self.max_tokens,
+            temperature=0.1,
+            messages=[{"role": "user", "content": prompt}],
+        )
+
+        response_text = "".join(
+            block.text for block in message.content if block.type == "text"
+        )
+
+        return {
+            "success": True,
+            "response": response_text,
+            "model": message.model,
+            "usage": {
+                "input_tokens": message.usage.input_tokens,
+                "output_tokens": message.usage.output_tokens,
+            },
+            "stop_reason": message.stop_reason,
+            "duration_seconds": round(time.time() - start, 2),
+        }
+
+    def _call_openai(self, prompt: str, start: float) -> dict:
+        """Call the OpenAI Chat Completions API."""
+        response = self._client.chat.completions.create(
+            model=self.model,
+            max_tokens=self.max_tokens,
+            temperature=0.1,
+            messages=[{"role": "user", "content": prompt}],
+        )
+
+        return {
+            "success": True,
+            "response": response.choices[0].message.content,
+            "model": response.model,
+            "usage": {
+                "input_tokens": response.usage.prompt_tokens,
+                "output_tokens": response.usage.completion_tokens,
+            },
+            "stop_reason": response.choices[0].finish_reason,
+            "duration_seconds": round(time.time() - start, 2),
+        }
 
 
 def save_json(obj: object, path: Path) -> None:
@@ -438,10 +480,18 @@ def main():
 
     # Load environment
     load_dotenv(args.env_file)
-    api_key = os.getenv("ANTHROPIC_API_KEY")
+
+    from processing_scripts.llm_client.client import is_openai_model
+
+    if is_openai_model(args.model):
+        api_key = os.getenv("OPENAI_API_KEY")
+        key_name = "OPENAI_API_KEY"
+    else:
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+        key_name = "ANTHROPIC_API_KEY"
 
     if not api_key and not args.dry_run:
-        print("Error: ANTHROPIC_API_KEY not found in environment.")
+        print(f"Error: {key_name} not found in environment.")
         print(f"Add it to {args.env_file} or set it as an environment variable.")
         sys.exit(1)
 
