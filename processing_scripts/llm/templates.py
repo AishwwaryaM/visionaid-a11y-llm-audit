@@ -6,6 +6,15 @@ from functools import lru_cache
 
 from .registry import PromptSpec
 
+# Shared preamble injected into every prompt before the payload.
+# Centralised here so prompt .txt files stay focused on task-specific instructions.
+_JUDGEMENT_PREAMBLE = (
+    "Prefer issues requiring human judgement over issues detectable by automated "
+    "markup checks (missing attributes, missing elements, structural violations). "
+    "However, if an element's semantic meaning is being misused (e.g., heading "
+    "tags used for visual styling rather than document structure), report it."
+)
+
 # Project root (three levels up: llm/ → processing_scripts/ → project-root/).
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
@@ -59,11 +68,21 @@ def get_template(spec: PromptSpec) -> str:
 
 
 def fill_template(spec: PromptSpec, payload_json: str) -> str:
-    """Load the template for a PromptSpec and replace {payload} with the given JSON string."""
+    """Load the template for a PromptSpec and replace {payload} with the given JSON string.
+
+    A shared judgement-vs-programmatic preamble is injected just before the
+    ``Data: {payload}`` line so that every prompt gets consistent guidance
+    without duplicating the block in each .txt file.
+    """
     template = get_template(spec)
     if "{payload}" not in template:
         raise ValueError(
             f"Template for '{spec.name}' (index {spec.prompt_index} in "
             f"{spec.prompt_file}) does not contain a {{payload}} placeholder."
         )
+    # Inject the shared preamble right before the payload marker.
+    template = template.replace(
+        "Data: {payload}",
+        f"{_JUDGEMENT_PREAMBLE}\n\nData: {{payload}}",
+    )
     return template.replace("{payload}", payload_json)

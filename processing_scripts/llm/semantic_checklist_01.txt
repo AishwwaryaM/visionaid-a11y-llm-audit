@@ -15,10 +15,6 @@ Check: - Is it descriptive? - Does it align with the H1? - Is it vague
 or generic? - Does it clearly describe page purpose without relying on
 context? 
 
-Focus only on issues requiring human judgement. Do not report issues 
-that can be detected by automated markup checks such as missing attributes, 
-missing elements, or structural violations. Focus only on semantic clarity, 
-wording quality, and usability.
 
 Return JSON: { “is_descriptive”: true/false, “matches_h1”: true/false,
 “issues”: [], “improved_example”: “string” }
@@ -40,10 +36,6 @@ unclear
 
 Do NOT check skipped levels (handled programmatically).
 
-Focus only on issues requiring human judgement. Do not report issues 
-that can be detected by automated markup checks such as missing attributes, 
-missing elements, or structural violations. Focus only on semantic clarity, 
-wording quality, and usability.
 
 Return JSON: { “structure_clear”: true/false, “vague_headings”: [],
 “issues”: [] }
@@ -64,10 +56,6 @@ clear.
 
 Do NOT report the existence of a link description (handled programmatically).
 
-Focus only on issues requiring human judgement. Do not report issues 
-that can be detected by automated markup checks such as missing attributes, 
-missing elements, or structural violations. Focus only on semantic clarity, 
-wording quality, and usability.
 
 Return JSON array: [ { “text”: “…”, “is_clear”: true/false, “reason”:
 “short explanation”, “suggested_improvement”: “string or null” }]
@@ -85,10 +73,6 @@ Evaluate whether this table represents real tabular data.
 Check: - Is the caption meaningful and descriptive? - Do headers clearly
 describe the data? - Does this appear to be layout rather than data?
 
-Focus only on issues requiring human judgement. Do not report issues 
-that can be detected by automated markup checks such as missing attributes, 
-missing elements, or structural violations. Focus only on semantic clarity, 
-wording quality, and usability.
 
 Return JSON: { “is_data_table”: true/false, “caption_clear”: true/false,
 “header_clarity_issues”: [], “issues”: [] }
@@ -108,10 +92,6 @@ Return JSON array: [ { “title”: “…”, “is_descriptive”: true/false,
 “reason”: “short explanation”, “suggested_improvement”: “string or null”
 }]
 
-Focus only on issues requiring human judgement. Do not report issues 
-that can be detected by automated markup checks such as missing attributes, 
-missing elements, or structural violations. Focus only on semantic clarity, 
-wording quality, and usability.
 
 Data: {payload}
 
@@ -126,10 +106,6 @@ Evaluate whether the landmark structure appears appropriate.
 Check: - Excessive landmark count - Missing main content landmark -
 Structural imbalance
 
-Focus only on issues requiring human judgement. Do not report issues 
-that can be detected by automated markup checks such as missing attributes, 
-missing elements, or structural violations. Focus only on semantic clarity, 
-wording quality, and usability.
 
 Return JSON: { “structure_appropriate”: true/false, “issues”: [] }
 
@@ -144,10 +120,6 @@ You are an accessibility auditor.
 Based on the semantic findings provided, summarize the key accessibility
 risks.
 
-Focus only on issues requiring human judgement. Do not report issues 
-that can be detected by automated markup checks such as missing attributes, 
-missing elements, or structural violations. Focus only on semantic clarity, 
-wording quality, and usability.
 
 Return JSON: { “high_priority_issues”: [], “moderate_issues”: [],
 “low_priority_issues”: [], “overall_semantic_quality_score”: 0-100 }

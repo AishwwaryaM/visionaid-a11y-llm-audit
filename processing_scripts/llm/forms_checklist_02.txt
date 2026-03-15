@@ -18,10 +18,6 @@ For each field provided, evaluate whether its effective label is:
 Do NOT evaluate whether the label is programmatically associated — that is
 handled by the programmatic checker. Focus only on label content quality.
 
-Focus only on issues requiring human judgement. Do not report issues 
-that can be detected by automated markup checks such as missing attributes, 
-missing elements, or structural violations. Focus only on semantic clarity, 
-wording quality, and usability.
 
 For fields with label_source of "none" or "placeholder_only", note these
 but focus your evaluation on fields that have an effective_label value.
@@ -60,10 +56,6 @@ For each field, evaluate:
 - Is the placeholder text at least descriptive enough to understand the purpose?
 - What would be an appropriate visible label?
 
-Focus only on issues requiring human judgement. Do not report issues 
-that can be detected by automated markup checks such as missing attributes, 
-missing elements, or structural violations. Focus only on semantic clarity, 
-wording quality, and usability.
 
 Return a JSON array:
 [
@@ -96,10 +88,6 @@ For each group provided, evaluate:
 - Is the legend text meaningful and sufficient to understand the group's purpose?
 - Do the individual input types (radio/checkbox) make sense in this group context?
 
-Focus only on issues requiring human judgement. Do not report issues 
-that can be detected by automated markup checks such as missing attributes, 
-missing elements, or structural violations. Focus only on semantic clarity, 
-wording quality, and usability.
 
 Return a JSON array:
 [
@@ -134,10 +122,6 @@ For each field marked required: true, evaluate:
 Note: the required HTML attribute IS programmatically set, but best practice
 is to also communicate it visually and verbally in the label or instructions.
 
-Focus only on issues requiring human judgement. Do not report issues 
-that can be detected by automated markup checks such as missing attributes, 
-missing elements, or structural violations. Focus only on semantic clarity, 
-wording quality, and usability.
 
 Return a JSON array:
 [
@@ -172,10 +156,6 @@ Fields without instructions (instructions: null) are NOT a failure but may
 represent a missed opportunity — note these only if the field type suggests
 instructions would be beneficial (e.g. password, date, phone number).
 
-Focus only on issues requiring human judgement. Do not report issues 
-that can be detected by automated markup checks such as missing attributes, 
-missing elements, or structural violations. Focus only on semantic clarity, 
-wording quality, and usability.
 
 Return a JSON array:
 [
@@ -205,10 +185,6 @@ Identify patterns across all forms (e.g. "all email fields lack visible labels",
 "search forms consistently use placeholder-only labels"). High-level patterns
 are more actionable than individual field findings.
 
-Focus only on issues requiring human judgement. Do not report issues 
-that can be detected by automated markup checks such as missing attributes, 
-missing elements, or structural violations. Focus only on semantic clarity, 
-wording quality, and usability.
 
 Return JSON:
 {
