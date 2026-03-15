@@ -32,6 +32,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from entry_points.run_pipeline import run_pipeline  # noqa: E402
 from entry_points.generate_report import generate_report  # noqa: E402
+from vision_aid.ingestion.file_crawler import fetch_page, fetch_pages_nested  # noqa: E402
 
 STATIC_DIR = PROJECT_ROOT  # index.html and styles.css live at the repo root
 
@@ -187,6 +188,10 @@ class AuditHandler(BaseHTTPRequestHandler):
     def do_POST(self):  # noqa: N802
         if self.path == "/api/audit":
             self._handle_audit()
+        elif self.path == "/api/audit/url":
+            self._handle_url_audit(nested=False)
+        elif self.path == "/api/audit/url/nested":
+            self._handle_url_audit(nested=True)
         else:
             self.send_error(404, "Not Found")
 
@@ -218,6 +223,42 @@ class AuditHandler(BaseHTTPRequestHandler):
             f"  Audit request: {len(html_content):,} chars, "
             f"model={model}, api_key={'set' if api_key else 'not set'}"
         )
+
+        result = run_audit(html_content, api_key, model)
+        self._send_json(result)
+
+    def _handle_url_audit(self, nested: bool):
+        """Fetch HTML from a URL (and optionally its nested links) then audit."""
+        length = int(self.headers.get("Content-Length", 0))
+        body = self.rfile.read(length)
+
+        try:
+            data = json.loads(body)
+        except json.JSONDecodeError:
+            self._send_json({"success": False, "error": "Invalid JSON body"}, 400)
+            return
+
+        url = data.get("url", "").strip()
+        if not url:
+            self._send_json({"success": False, "error": "url is required"}, 400)
+            return
+
+        api_key = (
+            data.get("api_key", "").strip()
+            or os.getenv("ANTHROPIC_API_KEY", "")
+        )
+        model = data.get("model", "claude-haiku-4-5-20251001")
+
+        print(
+            f"  URL audit request ({'nested' if nested else 'single'}): {url}, "
+            f"model={model}, api_key={'set' if api_key else 'not set'}"
+        )
+
+        try:
+            html_content = fetch_pages_nested(url) if nested else fetch_page(url)
+        except Exception as exc:
+            self._send_json({"success": False, "error": f"Failed to fetch URL: {exc}"}, 502)
+            return
 
         result = run_audit(html_content, api_key, model)
         self._send_json(result)

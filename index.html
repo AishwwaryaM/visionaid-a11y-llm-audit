@@ -244,12 +244,37 @@
             <div class="accent-bar" aria-hidden="true"></div>
             <h2 id="audit-heading">Accessibility Audit Tool</h2>
             <p>
-              Drop an HTML file to run a WCAG compliance analysis using the
-              project pipeline.
+              Provide an HTML file, or enter a URL to fetch and audit — with
+              optional recursive crawling of nested pages.
             </p>
           </div>
 
           <form id="auditForm" class="audit-form" novalidate>
+            <!-- Input mode selector -->
+            <div
+              class="audit-mode-group"
+              role="group"
+              aria-labelledby="auditModeLabel"
+            >
+              <p class="audit-mode-label" id="auditModeLabel">Input type</p>
+              <div class="audit-mode-tabs">
+                <label class="audit-mode-tab">
+                  <input type="radio" name="auditMode" value="html" checked />
+                  <span>HTML File</span>
+                </label>
+                <label class="audit-mode-tab">
+                  <input type="radio" name="auditMode" value="url" />
+                  <span>URL &#8212; Single Page</span>
+                </label>
+                <label class="audit-mode-tab">
+                  <input type="radio" name="auditMode" value="url-nested" />
+                  <span>URL &#8212; With Crawl</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- HTML file input -->
+            <div id="htmlInputSection">
             <div class="form-group">
               <label for="fileInput"
                 >HTML File
@@ -348,6 +373,38 @@
                 ></textarea>
               </details>
             </div>
+            </div><!-- /#htmlInputSection -->
+
+            <!-- URL input -->
+            <div id="urlInputSection" hidden>
+              <div class="form-group">
+                <label for="urlInput"
+                  >URL
+                  <span class="required-mark" aria-hidden="true">*</span
+                  ><span class="sr-only">(required)</span></label
+                >
+                <input
+                  type="url"
+                  id="urlInput"
+                  name="url"
+                  placeholder="https://example.com/"
+                  autocomplete="off"
+                  aria-describedby="urlInputHint"
+                />
+                <p class="field-hint" id="urlInputHint">
+                  The server fetches and audits this page.
+                  <em>URL &#8212; With Crawl</em> also follows in-domain links
+                  up to one level deep (max&nbsp;10 links per page).
+                </p>
+                <p
+                  class="form-error"
+                  id="urlError"
+                  role="alert"
+                  aria-live="assertive"
+                  hidden
+                ></p>
+              </div>
+            </div>
 
             <div class="form-row">
               <div class="form-group">
@@ -441,6 +498,22 @@
       document.querySelectorAll(".project-nav-link").forEach((link) => {
         link.addEventListener("click", showProject);
       });
+
+      // ── Input mode switching ──────────────────────────────────────────────────
+      const htmlInputSection = document.getElementById("htmlInputSection");
+      const urlInputSection = document.getElementById("urlInputSection");
+
+      document.querySelectorAll('input[name="auditMode"]').forEach((radio) => {
+        radio.addEventListener("change", () => {
+          const isHtml = radio.value === "html";
+          htmlInputSection.hidden = !isHtml;
+          urlInputSection.hidden = isHtml;
+        });
+      });
+
+      function getAuditMode() {
+        return document.querySelector('input[name="auditMode"]:checked').value;
+      }
 
       // ── Drag-and-drop / file input ────────────────────────────────────────────
       let htmlFileContent = null;
@@ -538,19 +611,38 @@
         .addEventListener("submit", async (e) => {
           e.preventDefault();
           clearError();
+          const _urlErr = document.getElementById("urlError");
+          if (_urlErr) { _urlErr.hidden = true; _urlErr.textContent = ""; }
 
-          const htmlContent =
-            htmlFileContent ||
-            document.getElementById("htmlInput").value.trim();
+          const mode = getAuditMode();
           const apiKey = document.getElementById("apiKeyInput").value.trim();
           const model = document.getElementById("modelSelect").value;
 
-          if (!htmlContent) {
-            showError(
-              "Please drop an HTML file or paste HTML before running the audit."
-            );
-            fileInput.focus();
-            return;
+          let endpoint, requestBody;
+          if (mode === "html") {
+            const htmlContent =
+              htmlFileContent ||
+              document.getElementById("htmlInput").value.trim();
+            if (!htmlContent) {
+              showError(
+                "Please drop an HTML file or paste HTML before running the audit."
+              );
+              fileInput.focus();
+              return;
+            }
+            endpoint = "/api/audit";
+            requestBody = { html_content: htmlContent, api_key: apiKey, model };
+          } else {
+            const urlVal = document.getElementById("urlInput").value.trim();
+            if (!urlVal) {
+              _urlErr.textContent = "Please enter a URL before running the audit.";
+              _urlErr.hidden = false;
+              document.getElementById("urlInput").focus();
+              return;
+            }
+            endpoint =
+              mode === "url-nested" ? "/api/audit/url/nested" : "/api/audit/url";
+            requestBody = { url: urlVal, api_key: apiKey, model };
           }
 
           const submitBtn = document.getElementById("auditSubmitBtn");
@@ -564,14 +656,10 @@
           content.innerHTML = "";
 
           try {
-            const res = await fetch("/api/audit", {
+            const res = await fetch(endpoint, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                html_content: htmlContent,
-                api_key: apiKey,
-                model,
-              }),
+              body: JSON.stringify(requestBody),
             });
 
             const data = await res.json().catch(() => ({

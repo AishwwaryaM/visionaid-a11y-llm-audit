@@ -121,6 +121,49 @@ def extract_links(html_content: str, base_url: str) -> Set[str]:
     
     return links
 
+def fetch_page(url: str, timeout: int = 30) -> str:
+    """Fetch a single URL and return its HTML content as a string."""
+    response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=timeout)
+    response.raise_for_status()
+    return response.text
+
+
+def fetch_pages_nested(url: str, max_depth: int = 1,
+                       max_links_per_page: int = 10, timeout: int = 30) -> str:
+    """Fetch HTML from *url* and its in-domain links up to *max_depth* levels.
+
+    All pages are concatenated with HTML comment separators and returned as a
+    single string, suitable for passing directly to the audit pipeline.
+    """
+    base_domain = urlparse(url).netloc
+    visited: Set[str] = set()
+    parts: List[str] = []
+
+    def _crawl(current_url: str, depth: int) -> None:
+        if current_url in visited or depth < 0:
+            return
+        visited.add(current_url)
+        try:
+            resp = requests.get(current_url, headers={'User-Agent': 'Mozilla/5.0'},
+                                timeout=timeout)
+            resp.raise_for_status()
+            parts.append(f"<!-- PAGE: {current_url} -->\n{resp.text}")
+            if depth > 0:
+                links = extract_links(resp.text, current_url)
+                nested = [
+                    link for link in links
+                    if urlparse(link).netloc == base_domain and link not in visited
+                ]
+                for link in nested[:max_links_per_page]:
+                    time.sleep(0.5)
+                    _crawl(link, depth - 1)
+        except Exception as e:
+            print(f"Warning: could not fetch {current_url}: {e}")
+
+    _crawl(url, max_depth)
+    return "\n\n".join(parts)
+
+
 if __name__ == "__main__":
     # Download a page and its nested links up to depth 1
     start_url = "https://visionaid.org/"  # Replace with your target URL

@@ -641,6 +641,73 @@ section:nth-child(even) {
   border-radius: 4px;
 }
 
+/* --- Input mode selector --- */
+.audit-mode-group {
+  margin-bottom: 28px;
+}
+
+.audit-mode-label {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: #1A1A1A;
+  margin-bottom: 8px;
+}
+
+.audit-mode-tabs {
+  display: flex;
+  width: fit-content;
+  border: 1.5px solid #d6d4d0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.audit-mode-tab {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.audit-mode-tab input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.audit-mode-tab span {
+  display: block;
+  padding: 8px 18px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #555;
+  background: #FFFFFF;
+  border-right: 1.5px solid #d6d4d0;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.audit-mode-tab:last-child span {
+  border-right: none;
+}
+
+.audit-mode-tab:hover span {
+  background: #f5f4f1;
+  color: #1A1A1A;
+}
+
+.audit-mode-tab input[type="radio"]:checked + span {
+  background: #0D7377;
+  color: #FFFFFF;
+}
+
+.audit-mode-tab input[type="radio"]:focus-visible + span {
+  outline: 3px solid #E8A838;
+  outline-offset: -3px;
+  border-radius: 0;
+}
+
 /* --- Drop zone --- */
 .drop-zone {
   border: 2px dashed #c8c6c1;
