@@ -18,9 +18,11 @@ For each field provided, evaluate whether its effective label is:
 Do NOT evaluate whether the label is programmatically associated — that is
 handled by the programmatic checker. Focus only on label content quality.
 
-
 For fields with label_source of "none" or "placeholder_only", note these
 but focus your evaluation on fields that have an effective_label value.
+
+If the payload contains a "_context" key, use it for additional page
+information to inform your evaluation but do not include it in your output.
 
 Return a JSON array, one entry per field:
 [
@@ -31,7 +33,8 @@ Return a JSON array, one entry per field:
     "label_source": "string",
     "is_descriptive": true/false,
     "issues": [],
-    "suggested_improvement": "string or null"
+    "suggested_improvement": "string or null",
+    "recommended_fix": "Show the exact HTML change using the field's actual id and attributes. For example: Change `<label for='email'>Input</label>` to `<label for='email'>Email address</label>`"
   }
 ]
 
@@ -56,6 +59,8 @@ For each field, evaluate:
 - Is the placeholder text at least descriptive enough to understand the purpose?
 - What would be an appropriate visible label?
 
+If the payload contains a "_context" key, use it for additional page
+information to inform your evaluation but do not include it in your output.
 
 Return a JSON array:
 [
@@ -65,7 +70,8 @@ Return a JSON array:
     "placeholder": "string",
     "severity": "critical" | "moderate" | "low",
     "reason": "string",
-    "suggested_label": "string"
+    "suggested_label": "string",
+    "recommended_fix": "Show the exact HTML to add. For example: Add `<label for='search-input'>Search</label>` before `<input id='search-input' placeholder='Search...'>`"
   }
 ]
 
@@ -88,6 +94,8 @@ For each group provided, evaluate:
 - Is the legend text meaningful and sufficient to understand the group's purpose?
 - Do the individual input types (radio/checkbox) make sense in this group context?
 
+If the payload contains a "_context" key, use it for additional page
+information to inform your evaluation but do not include it in your output.
 
 Return a JSON array:
 [
@@ -96,7 +104,8 @@ Return a JSON array:
     "input_types": [],
     "legend_is_meaningful": true/false,
     "issues": [],
-    "suggested_improvement": "string or null"
+    "suggested_improvement": "string or null",
+    "recommended_fix": "Show the exact HTML change. For example: Wrap the radio group in `<fieldset><legend>Preferred contact method</legend>...</fieldset>`"
   }
 ]
 
@@ -122,6 +131,8 @@ For each field marked required: true, evaluate:
 Note: the required HTML attribute IS programmatically set, but best practice
 is to also communicate it visually and verbally in the label or instructions.
 
+If the payload contains a "_context" key, use it for additional page
+information to inform your evaluation but do not include it in your output.
 
 Return a JSON array:
 [
@@ -132,7 +143,8 @@ Return a JSON array:
     "requirement_in_label": true/false,
     "requirement_in_instructions": true/false,
     "issues": [],
-    "recommendation": "string or null"
+    "recommendation": "string or null",
+    "recommended_fix": "Show the exact HTML change using the field's actual id. For example: Change `<label for='email'>Email</label>` to `<label for='email'>Email <span aria-hidden='true'>*</span><span class='sr-only'>(required)</span></label>`"
   }
 ]
 
@@ -156,6 +168,8 @@ Fields without instructions (instructions: null) are NOT a failure but may
 represent a missed opportunity — note these only if the field type suggests
 instructions would be beneficial (e.g. password, date, phone number).
 
+If the payload contains a "_context" key, use it for additional page
+information to inform your evaluation but do not include it in your output.
 
 Return a JSON array:
 [
@@ -165,7 +179,8 @@ Return a JSON array:
     "instructions": "string or null",
     "instructions_are_helpful": true/false/null,
     "issues": [],
-    "recommendation": "string or null"
+    "recommendation": "string or null",
+    "recommended_fix": "Show the exact HTML change using the field's actual id. For example: Add `<span id='email-hint'>Enter your work email address</span>` and add `aria-describedby='email-hint'` to `<input id='email'>`"
   }
 ]
 

@@ -25,6 +25,9 @@ Check whether alt text:
 Use alt_flags to guide you: "looks_like_filename", "redundant_phrase",
 and "too_long" are pre-detected quality issues you should address.
 
+If the payload contains a "_context" key, use it (especially heading_outline
+and page_title) to understand what the images likely depict and suggest
+more specific alt text.
 
 Return a JSON array:
 [
@@ -34,7 +37,8 @@ Return a JSON array:
     "alt_flags": [],
     "quality": "good" | "acceptable" | "poor",
     "issues": [],
-    "suggested_improvement": "string or null"
+    "suggested_improvement": "string or null",
+    "recommended_fix": "Show the exact HTML change using the image's actual src. For example: Change `<img src='/img/team.jpg' alt='photo of people'>` to `<img src='/img/team.jpg' alt='VisionAid volunteers at the 2024 accessibility workshop'>`"
   }
 ]
 
@@ -58,6 +62,8 @@ Evaluate whether each image is genuinely decorative based on:
 Decorative images are CORRECT to have empty alt. Flag images that appear
 to carry informational content despite their empty alt as potential issues.
 
+If the payload contains a "_context" key, use it for additional page
+information to inform your evaluation but do not include it in your output.
 
 Return a JSON array:
 [
@@ -67,7 +73,8 @@ Return a JSON array:
     "likely_decorative": true/false,
     "confidence": "high" | "medium" | "low",
     "reason": "string",
-    "recommendation": "string or null"
+    "recommendation": "string or null",
+    "recommended_fix": "If the image is NOT decorative, show the exact HTML change. For example: Change `<img src='/img/chart.png' alt=''>` to `<img src='/img/chart.png' alt='Bar chart showing 40% increase in accessibility scores'>`"
   }
 ]
 
@@ -96,6 +103,8 @@ link_href, button_text, button_aria_label) to determine:
 Note: if the link or button already has other visible text, the image may use
 empty alt="" — flag cases where both the image alt and surrounding text are empty.
 
+If the payload contains a "_context" key, use it (especially heading_outline)
+to understand the page structure and suggest more specific action-oriented alt text.
 
 Return a JSON array:
 [
@@ -107,7 +116,8 @@ Return a JSON array:
     "full_accessible_name": "string",
     "describes_action_not_appearance": true/false,
     "issues": [],
-    "suggested_improvement": "string or null"
+    "suggested_improvement": "string or null",
+    "recommended_fix": "Show the exact HTML change using the element's actual attributes. For example: Change `<a href='/donate'><img src='/img/heart.png' alt='heart icon'></a>` to `<a href='/donate'><img src='/img/heart.png' alt='Donate to VisionAid'></a>`"
   }
 ]
 
@@ -131,6 +141,8 @@ For each image, evaluate:
 - If a long description exists, is it comprehensive?
 - What would a meaningful description need to include?
 
+If the payload contains a "_context" key, use it for additional page
+information to inform your evaluation but do not include it in your output.
 
 Return a JSON array:
 [
@@ -143,7 +155,8 @@ Return a JSON array:
     "long_description_needed": true/false,
     "long_description_adequate": true/false/null,
     "issues": [],
-    "recommended_description_outline": "string or null"
+    "recommended_description_outline": "string or null",
+    "recommended_fix": "Show the exact HTML change. For example: Change `<img src='/img/chart.png' alt='chart'>` to `<img src='/img/chart.png' alt='Bar chart: accessibility scores by quarter' aria-describedby='chart-desc'>` and add `<div id='chart-desc' class='sr-only'>Q1: 45%, Q2: 62%, Q3: 78%, Q4: 91%. Scores increased steadily throughout 2024.</div>`"
   }
 ]
 
@@ -170,6 +183,8 @@ For each SVG, evaluate:
 - If a title exists, is the title text meaningful and descriptive?
 - Is an aria-label used as an alternative — is it sufficient?
 
+If the payload contains a "_context" key, use it for additional page
+information to inform your evaluation but do not include it in your output.
 
 Return a JSON array:
 [
@@ -182,7 +197,8 @@ Return a JSON array:
     "has_accessible_name": true/false,
     "title_is_meaningful": true/false/null,
     "issues": [],
-    "recommendation": "string or null"
+    "recommendation": "string or null",
+    "recommended_fix": "Show the exact HTML change. For example: Change `<svg viewBox='0 0 24 24'>` to `<svg viewBox='0 0 24 24' role='img' aria-labelledby='icon-title'><title id='icon-title'>Search</title>` — or if decorative: Add `aria-hidden='true'` to `<svg>`"
   }
 ]
 
@@ -217,6 +233,8 @@ Assign one of these patterns:
 - unlabeled_control: sole_content=true AND aria-hidden=true (critical — control has no name)
 - missing_label: no aria-hidden, no aria-label, no visible text
 
+If the payload contains a "_context" key, use it for additional page
+information to inform your evaluation but do not include it in your output.
 
 Return a JSON array:
 [
@@ -228,7 +246,8 @@ Return a JSON array:
     "sole_content": true/false,
     "pattern": "decorative_correct" | "informative_correct" | "unlabeled_control" | "missing_label",
     "issues": [],
-    "recommendation": "string or null"
+    "recommendation": "string or null",
+    "recommended_fix": "Show the exact HTML change using the element's actual classes. For example: Change `<a href='/facebook'><i class='fa fa-facebook' aria-hidden='true'></i></a>` to `<a href='/facebook' aria-label='VisionAid on Facebook'><i class='fa fa-facebook' aria-hidden='true'></i></a>`"
   }
 ]
 
@@ -250,6 +269,8 @@ For each media element, evaluate:
 - Videos with autoplay are a potential distraction and confusion issue
 - Check whether tracks are labeled (label attribute) and have srclang set
 
+If the payload contains a "_context" key, use it for additional page
+information to inform your evaluation but do not include it in your output.
 
 Return a JSON array:
 [
@@ -261,7 +282,8 @@ Return a JSON array:
     "has_captions_track": true/false,
     "tracks": [],
     "issues": [],
-    "recommendation": "string or null"
+    "recommendation": "string or null",
+    "recommended_fix": "Show the exact HTML change using the element's actual src. For example: Add `<track kind='captions' src='/captions/intro.vtt' srclang='en' label='English'>` inside `<video src='/video/intro.mp4'>`"
   }
 ]
 

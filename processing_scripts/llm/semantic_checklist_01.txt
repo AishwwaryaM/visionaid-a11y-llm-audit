@@ -13,11 +13,14 @@ Evaluate the page title.
 
 Check: - Is it descriptive? - Does it align with the H1? - Is it vague
 or generic? - Does it clearly describe page purpose without relying on
-context? 
+context?
 
+If the payload contains a "_context" key, use it for additional page
+information to inform your evaluation but do not include it in your output.
 
-Return JSON: { “is_descriptive”: true/false, “matches_h1”: true/false,
-“issues”: [], “improved_example”: “string” }
+Return JSON: { "is_descriptive": true/false, "matches_h1": true/false,
+"issues": [], "improved_example": "string",
+"recommended_fix": "Show the exact HTML change, e.g. Change `<title>Home</title>` to `<title>Volunteer Programs - VisionAid</title>`" }
 
 Data: {payload}
 
@@ -36,9 +39,12 @@ unclear
 
 Do NOT check skipped levels (handled programmatically).
 
+If the payload contains a "_context" key, use it for additional page
+information to inform your evaluation but do not include it in your output.
 
-Return JSON: { “structure_clear”: true/false, “vague_headings”: [],
-“issues”: [] }
+Return JSON: { "structure_clear": true/false, "vague_headings": [],
+"issues": [],
+"recommended_fixes": ["For each issue, show the exact HTML change, e.g. Change `<h2>Info</h2>` to `<h2>Volunteer Program Details</h2>`"] }
 
 Data: {payload}
 
@@ -56,9 +62,12 @@ clear.
 
 Do NOT report the existence of a link description (handled programmatically).
 
+If the payload contains a "_context" key, use it (especially heading_outline)
+to understand the page structure and suggest more specific link text.
 
-Return JSON array: [ { “text”: “…”, “is_clear”: true/false, “reason”:
-“short explanation”, “suggested_improvement”: “string or null” }]
+Return JSON array: [ { "text": "…", "is_clear": true/false, "reason":
+"short explanation", "suggested_improvement": "string or null",
+"recommended_fix": "Show the exact HTML change using the element's actual attributes. For example: Change `<a href='/donate'>click here</a>` to `<a href='/donate'>Donate to VisionAid</a>`" }]
 
 Data: {payload}
 
@@ -73,9 +82,12 @@ Evaluate whether this table represents real tabular data.
 Check: - Is the caption meaningful and descriptive? - Do headers clearly
 describe the data? - Does this appear to be layout rather than data?
 
+If the payload contains a "_context" key, use it for additional page
+information to inform your evaluation but do not include it in your output.
 
-Return JSON: { “is_data_table”: true/false, “caption_clear”: true/false,
-“header_clarity_issues”: [], “issues”: [] }
+Return JSON: { "is_data_table": true/false, "caption_clear": true/false,
+"header_clarity_issues": [], "issues": [],
+"recommended_fixes": ["For each issue, show the exact HTML change. For example: Add `<caption>Weekly volunteer schedule</caption>` as the first child of `<table>`, or Change `<td>Name</td>` to `<th scope='col'>Name</th>`"] }
 
 Data: {payload}
 
@@ -85,12 +97,15 @@ Data: {payload}
 
 You are an accessibility auditor.
 
-Evaluate whether each iframe title clearly describes the iframe’s
+Evaluate whether each iframe title clearly describes the iframe's
 purpose.
 
-Return JSON array: [ { “title”: “…”, “is_descriptive”: true/false,
-“reason”: “short explanation”, “suggested_improvement”: “string or null”
-}]
+If the payload contains a "_context" key, use it for additional page
+information to inform your evaluation but do not include it in your output.
+
+Return JSON array: [ { "title": "…", "is_descriptive": true/false,
+"reason": "short explanation", "suggested_improvement": "string or null",
+"recommended_fix": "Show the exact HTML change using the iframe's actual src. For example: Change `<iframe src='https://youtube.com/embed/abc'>` to `<iframe src='https://youtube.com/embed/abc' title='VisionAid introduction video'>`" }]
 
 
 Data: {payload}
@@ -106,8 +121,11 @@ Evaluate whether the landmark structure appears appropriate.
 Check: - Excessive landmark count - Missing main content landmark -
 Structural imbalance
 
+If the payload contains a "_context" key, use it (especially heading_outline)
+to understand the page structure and suggest more specific landmark fixes.
 
-Return JSON: { “structure_appropriate”: true/false, “issues”: [] }
+Return JSON: { "structure_appropriate": true/false, "issues": [],
+"recommended_fixes": ["For each issue, show the exact HTML change. For example: Add `aria-label='Primary navigation'` to the first `<nav>` and `aria-label='Footer navigation'` to the second `<nav>`"] }
 
 Data: {payload}
 
@@ -121,7 +139,7 @@ Based on the semantic findings provided, summarize the key accessibility
 risks.
 
 
-Return JSON: { “high_priority_issues”: [], “moderate_issues”: [],
-“low_priority_issues”: [], “overall_semantic_quality_score”: 0-100 }
+Return JSON: { "high_priority_issues": [], "moderate_issues": [],
+"low_priority_issues": [], "overall_semantic_quality_score": 0-100 }
 
 Data: {payload}

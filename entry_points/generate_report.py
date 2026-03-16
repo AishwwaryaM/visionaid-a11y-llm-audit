@@ -99,6 +99,22 @@ def extract_page_title_from_payload(prompt_data: dict) -> str:
         return ""
 
 
+def _get_recommendation(item: dict) -> str:
+    """Extract the best fix recommendation from an LLM finding.
+
+    Checks recommended_fix first (the new field from updated prompts),
+    then falls back to existing field names for backwards compatibility.
+    """
+    return (
+        item.get("recommended_fix")
+        or item.get("suggested_improvement")
+        or item.get("recommendation")
+        or item.get("improved_example")
+        or item.get("fix")
+        or ""
+    )
+
+
 # ── Programmatic findings normalizer ───────────────────────────────────────
 
 def normalize_programmatic(findings: list[dict], page_title: str,
@@ -175,7 +191,7 @@ def _norm_page_title(data: dict, wcag: str, **ctx) -> list[ReportRow]:
             issue_title=f"Page Title: {issue}",
             actual_result=issue,
             expected_result="Page title should be descriptive and match H1 content",
-            recommendation=data.get("improved_example", ""),
+            recommendation=_get_recommendation(data),
             wcag_sc=wcag,
             category="Semantic Structure / Page Title",
         ))
@@ -220,7 +236,7 @@ def _norm_link_clarity(data: list, wcag: str, **ctx) -> list[ReportRow]:
             issue_title=f"Unclear link: \"{text}\"",
             actual_result=item.get("reason", ""),
             expected_result="Link text should clearly describe its destination when read alone",
-            recommendation=item.get("suggested_improvement", ""),
+            recommendation=_get_recommendation(item),
             wcag_sc=wcag,
             category="Semantic Structure / Links",
         ))
@@ -239,7 +255,7 @@ def _norm_iframe_titles(data: list, wcag: str, **ctx) -> list[ReportRow]:
             issue_title=f"Non-descriptive iframe title: \"{title}\"",
             actual_result=item.get("reason", ""),
             expected_result="Iframe title should clearly describe the iframe content",
-            recommendation=item.get("suggested_improvement", ""),
+            recommendation=_get_recommendation(item),
             wcag_sc=wcag,
             category="Semantic Structure / Iframes",
         ))
@@ -277,7 +293,7 @@ def _norm_label_quality(data: list, wcag: str, **ctx) -> list[ReportRow]:
             issue_title=f"Poor label quality: \"{label}\"",
             actual_result="; ".join(issues),
             expected_result="Form field labels should be descriptive and meaningful",
-            recommendation=item.get("suggested_improvement", ""),
+            recommendation=_get_recommendation(item),
             wcag_sc=wcag,
             category="Forms / Label Quality",
         ))
@@ -298,7 +314,7 @@ def _norm_required_field_indicators(data: list, wcag: str, **ctx) -> list[Report
             issue_title=f"Required field not clearly indicated: \"{label}\"",
             actual_result="; ".join(issues),
             expected_result="Required field status should be communicated visually and programmatically",
-            recommendation=item.get("recommendation", ""),
+            recommendation=_get_recommendation(item),
             wcag_sc=wcag,
             category="Forms / Required Fields",
         ))
@@ -319,7 +335,7 @@ def _norm_informative_alt_quality(data: list, wcag: str, **ctx) -> list[ReportRo
             issue_title=f"Poor alt text quality ({item.get('quality', 'poor')}): \"{alt}\"",
             actual_result="; ".join(issues),
             expected_result="Alt text should accurately and concisely describe image content",
-            recommendation=item.get("suggested_improvement", ""),
+            recommendation=_get_recommendation(item),
             wcag_sc=wcag,
             category="Non-text Content / Informative Images",
         ))
@@ -338,7 +354,7 @@ def _norm_decorative_verification(data: list, wcag: str, **ctx) -> list[ReportRo
             issue_title=f"Possibly mis-marked as decorative: {src}",
             actual_result=item.get("reason", ""),
             expected_result="Image marked as decorative (alt=\"\") should truly be decorative",
-            recommendation=item.get("recommendation", ""),
+            recommendation=_get_recommendation(item),
             wcag_sc=wcag,
             category="Non-text Content / Decorative Verification",
         ))
@@ -360,7 +376,7 @@ def _norm_actionable_image_alt(data: list, wcag: str, **ctx) -> list[ReportRow]:
             issue_title=f"Actionable image alt issue: \"{alt}\"",
             actual_result="; ".join(issues),
             expected_result="Images in links/buttons should describe the action/destination, not appearance",
-            recommendation=item.get("suggested_improvement", ""),
+            recommendation=_get_recommendation(item),
             wcag_sc=wcag,
             category="Non-text Content / Actionable Images",
         ))
@@ -380,7 +396,7 @@ def _norm_svg_accessibility(data: list, wcag: str, **ctx) -> list[ReportRow]:
             issue_title=f"SVG accessibility issue: {label}",
             actual_result="; ".join(issues),
             expected_result="SVGs should have role=\"img\" and an accessible name via title + aria-labelledby",
-            recommendation=item.get("recommendation", ""),
+            recommendation=_get_recommendation(item),
             wcag_sc=wcag,
             category="Non-text Content / SVGs",
         ))
@@ -401,7 +417,7 @@ def _norm_icon_font_accessibility(data: list, wcag: str, **ctx) -> list[ReportRo
             issue_title=f"Icon font issue ({pattern}): {classes}",
             actual_result="; ".join(issues),
             expected_result="Icon fonts should be properly labeled or hidden from assistive technology",
-            recommendation=item.get("recommendation", ""),
+            recommendation=_get_recommendation(item),
             wcag_sc=wcag,
             category="Non-text Content / Icon Fonts",
         ))
