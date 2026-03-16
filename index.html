@@ -409,10 +409,9 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="apiKeyInput"
-                  >Anthropic API Key
+                  ><span id="apiKeyLabel">Anthropic API Key</span>
                   <span class="optional-mark">(optional)</span></label
                 >
-
                 <input
                   type="password"
                   id="apiKeyInput"
@@ -422,8 +421,7 @@
                   aria-describedby="apiKeyHint"
                 />
                 <p class="field-hint" id="apiKeyHint">
-                  Required when using a Claude model. Without a key, only
-                  programmatic checks run. Never stored or logged.
+                  Without a key, only programmatic checks run. Never stored or logged.
                 </p>
               </div>
 
@@ -446,24 +444,6 @@
                   </optgroup>
                 </select>
               </div>
-            </div>
-
-            <div class="form-group">
-              <label for="openaiKeyInput">
-                OpenAI API Key
-                <span class="optional-mark">(optional)</span>
-              </label>
-              <input
-                type="password"
-                id="openaiKeyInput"
-                name="openai_api_key"
-                placeholder="sk-…"
-                autocomplete="off"
-                aria-describedby="openaiKeyHint"
-              />
-              <p class="field-hint" id="openaiKeyHint">
-                Required when using an OpenAI model. Your key is never stored or logged.
-              </p>
             </div>
 
             <button type="submit" class="audit-btn" id="auditSubmitBtn">
@@ -524,6 +504,28 @@
       document.querySelectorAll(".project-nav-link").forEach((link) => {
         link.addEventListener("click", showProject);
       });
+
+      // ── API key label switching based on model ────────────────────────────────
+      const OPENAI_PREFIXES = ["gpt-", "o1", "o3", "o4"];
+      function isOpenAIModel(model) {
+        return OPENAI_PREFIXES.some((p) => model.startsWith(p));
+      }
+
+      const modelSelect = document.getElementById("modelSelect");
+      const apiKeyLabel = document.getElementById("apiKeyLabel");
+      const apiKeyInput = document.getElementById("apiKeyInput");
+
+      function updateApiKeyField() {
+        if (isOpenAIModel(modelSelect.value)) {
+          apiKeyLabel.textContent = "OpenAI API Key";
+          apiKeyInput.placeholder = "sk-…";
+        } else {
+          apiKeyLabel.textContent = "Anthropic API Key";
+          apiKeyInput.placeholder = "sk-ant-api03-…";
+        }
+      }
+
+      modelSelect.addEventListener("change", updateApiKeyField);
 
       // ── Input mode switching ──────────────────────────────────────────────────
       const htmlInputSection = document.getElementById("htmlInputSection");
@@ -641,9 +643,9 @@
           if (_urlErr) { _urlErr.hidden = true; _urlErr.textContent = ""; }
 
           const mode = getAuditMode();
-          const apiKey = document.getElementById("apiKeyInput").value.trim();
-          const openaiKey = document.getElementById("openaiKeyInput").value.trim();
           const model = document.getElementById("modelSelect").value;
+          const keyValue = document.getElementById("apiKeyInput").value.trim();
+          const keyField = isOpenAIModel(model) ? "openai_api_key" : "api_key";
 
           let endpoint, requestBody;
           if (mode === "html") {
@@ -658,7 +660,7 @@
               return;
             }
             endpoint = "/api/audit";
-            requestBody = { html_content: htmlContent, api_key: apiKey, openai_api_key: openaiKey, model };
+            requestBody = { html_content: htmlContent, [keyField]: keyValue, model };
           } else {
             const urlVal = document.getElementById("urlInput").value.trim();
             if (!urlVal) {
@@ -669,7 +671,7 @@
             }
             endpoint =
               mode === "url-nested" ? "/api/audit/url/nested" : "/api/audit/url";
-            requestBody = { url: urlVal, api_key: apiKey, openai_api_key: openaiKey, model };
+            requestBody = { url: urlVal, [keyField]: keyValue, model };
           }
 
           const submitBtn = document.getElementById("auditSubmitBtn");
