@@ -333,6 +333,7 @@ class AuditHandler(BaseHTTPRequestHandler):
         }
 
         total_cost = 0.0
+        csv_parts: list[str] = []  # per-page CSV content for merging
         for page_url, page_html in pages:
             print(f"  Auditing: {page_url}")
             page_result = run_audit(page_html, api_key, model)
@@ -342,6 +343,18 @@ class AuditHandler(BaseHTTPRequestHandler):
                 continue
 
             merged["pages_audited"].append(page_url)
+
+            # Collect per-page CSV content for merging
+            page_csv = page_result.get("csv_report")
+            if page_csv:
+                if not csv_parts:
+                    # First page: keep header + data rows
+                    csv_parts.append(page_csv.rstrip("\n"))
+                else:
+                    # Subsequent pages: skip header row
+                    lines = page_csv.split("\n", 1)
+                    if len(lines) > 1 and lines[1].strip():
+                        csv_parts.append(lines[1].rstrip("\n"))
 
             # Tag programmatic findings with source URL
             for finding in page_result.get("programmatic_findings", []):
@@ -382,6 +395,9 @@ class AuditHandler(BaseHTTPRequestHandler):
 
         if total_cost > 0:
             merged["summary"]["estimated_cost_usd"] = round(total_cost, 6)
+
+        if csv_parts:
+            merged["csv_report"] = "\n".join(csv_parts) + "\n"
 
         self._send_json(merged)
 
