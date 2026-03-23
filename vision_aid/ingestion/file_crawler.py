@@ -147,6 +147,18 @@ def fetch_page(url: str, timeout: int = 30) -> str:
     return response.text
 
 
+def _normalize_url(url: str) -> str:
+    """Normalize a URL so that trailing-slash variants are treated as identical."""
+    parsed = urlparse(url)
+    path = parsed.path
+    if not path or path == "/":
+        path = "/"
+    elif not path.endswith("/") and "." not in path.rsplit("/", 1)[-1]:
+        # Add trailing slash to directory-like paths (no file extension)
+        path += "/"
+    return parsed._replace(path=path, fragment="").geturl()
+
+
 def fetch_pages_nested(url: str, max_depth: int = 1,
                        max_links_per_page: int = 10, timeout: int = 30) -> str:
     """Fetch HTML from *url* and its in-domain links up to *max_depth* levels.
@@ -154,11 +166,13 @@ def fetch_pages_nested(url: str, max_depth: int = 1,
     All pages are concatenated with HTML comment separators and returned as a
     single string, suitable for passing directly to the audit pipeline.
     """
+    url = _normalize_url(url)
     base_domain = urlparse(url).netloc
     visited: Set[str] = set()
     parts: List[str] = []
 
     def _crawl(current_url: str, depth: int) -> None:
+        current_url = _normalize_url(current_url)
         if current_url in visited or depth < 0:
             return
         visited.add(current_url)
