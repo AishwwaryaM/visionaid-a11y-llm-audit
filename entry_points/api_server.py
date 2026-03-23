@@ -306,11 +306,29 @@ class AuditHandler(BaseHTTPRequestHandler):
             self._send_json(result)
             return
 
-        # ── Multi-page: run the pipeline once per page, then merge ────────
+        # ── Multi-page: stream progress, run pipeline per page, merge ─────
         pages = split_pages(html_content)
-        print(f"  Split into {len(pages)} page(s)")
+        total_pages = len(pages)
+        print(f"  Split into {total_pages} page(s)")
 
-        per_page_results: list[dict] = []
+        # Start streaming NDJSON so the client gets progress updates
+        self.send_response(200)
+        self.send_header("Content-Type", "application/x-ndjson; charset=utf-8")
+        self._cors_headers()
+        self.end_headers()
+
+        def _send_event(obj: dict) -> None:
+            line = json.dumps(obj, ensure_ascii=False) + "\n"
+            self.wfile.write(line.encode("utf-8"))
+            self.wfile.flush()
+
+        _send_event({
+            "type": "progress",
+            "stage": "crawl_complete",
+            "total_pages": total_pages,
+            "message": f"Found {total_pages} page(s) to audit",
+        })
+
         merged = {
             "success": True,
             "programmatic_findings": [],
@@ -328,42 +346,53 @@ class AuditHandler(BaseHTTPRequestHandler):
                 "estimated_cost_usd": None,
                 "model": model,
                 "dry_run": not api_key,
-                "pages": len(pages),
+                "pages": total_pages,
             },
         }
 
         total_cost = 0.0
-        csv_parts: list[str] = []  # per-page CSV content for merging
-        for page_url, page_html in pages:
+        csv_parts: list[str] = []
+        for page_idx, (page_url, page_html) in enumerate(pages, start=1):
+            _send_event({
+                "type": "progress",
+                "stage": "auditing_page",
+                "page": page_idx,
+                "total_pages": total_pages,
+                "page_url": page_url,
+                "message": f"Auditing page {page_idx}/{total_pages}: {page_url}",
+            })
+
             print(f"  Auditing: {page_url}")
             page_result = run_audit(page_html, api_key, model)
 
             if not page_result.get("success"):
                 print(f"    FAILED: {page_result.get('error')}")
+                _send_event({
+                    "type": "progress",
+                    "stage": "page_error",
+                    "page": page_idx,
+                    "page_url": page_url,
+                    "message": f"Failed: {page_result.get('error', 'unknown')}",
+                })
                 continue
 
             merged["pages_audited"].append(page_url)
 
-            # Collect per-page CSV content for merging
             page_csv = page_result.get("csv_report")
             if page_csv:
                 if not csv_parts:
-                    # First page: keep header + data rows
                     csv_parts.append(page_csv.rstrip("\n"))
                 else:
-                    # Subsequent pages: skip header row
                     lines = page_csv.split("\n", 1)
                     if len(lines) > 1 and lines[1].strip():
                         csv_parts.append(lines[1].rstrip("\n"))
 
-            # Tag programmatic findings with source URL
             for finding in page_result.get("programmatic_findings", []):
                 finding["page_url"] = page_url
             merged["programmatic_findings"].extend(
                 page_result.get("programmatic_findings", [])
             )
 
-            # Tag LLM results with source URL (namespace by page)
             for name, result_data in page_result.get("llm_results", {}).items():
                 result_data["page_url"] = page_url
                 key = f"{name}|{page_url}"
@@ -373,7 +402,6 @@ class AuditHandler(BaseHTTPRequestHandler):
                 page_result.get("skipped_prompts", [])
             )
 
-            # Accumulate summary stats
             page_summary = page_result.get("summary", {})
             merged["summary"]["programmatic_count"] += page_summary.get(
                 "programmatic_count", 0
@@ -393,13 +421,24 @@ class AuditHandler(BaseHTTPRequestHandler):
             if page_summary.get("estimated_cost_usd") is not None:
                 total_cost += page_summary["estimated_cost_usd"]
 
+            _send_event({
+                "type": "progress",
+                "stage": "page_complete",
+                "page": page_idx,
+                "total_pages": total_pages,
+                "page_url": page_url,
+                "message": f"Completed page {page_idx}/{total_pages}",
+            })
+
         if total_cost > 0:
             merged["summary"]["estimated_cost_usd"] = round(total_cost, 6)
 
         if csv_parts:
             merged["csv_report"] = "\n".join(csv_parts) + "\n"
 
-        self._send_json(merged)
+        # Final event: the full merged result
+        merged["type"] = "result"
+        _send_event(merged)
 
     def _send_json(self, obj: dict, status: int = 200):
         body = json.dumps(obj, indent=2, ensure_ascii=False).encode("utf-8")

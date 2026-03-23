@@ -699,6 +699,20 @@
           resultsSection.style.display = "none";
           content.innerHTML = "";
 
+          // Show progress bar for multi-page audits
+          const isNested = mode === "url-nested";
+          if (isNested) {
+            resultsSection.style.display = "block";
+            content.innerHTML = `
+              <div class="audit-progress" role="status" aria-live="polite">
+                <p class="progress-message" id="progressMessage">Crawling pages\u2026</p>
+                <div class="progress-bar-track" aria-hidden="true">
+                  <div class="progress-bar-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+                <p class="progress-detail" id="progressDetail"></p>
+              </div>`;
+          }
+
           try {
             const res = await fetch(endpoint, {
               method: "POST",
@@ -706,10 +720,56 @@
               body: JSON.stringify(requestBody),
             });
 
-            const data = await res.json().catch(() => ({
-              success: false,
-              error: `HTTP ${res.status} \u2014 invalid JSON response`,
-            }));
+            let data;
+            if (isNested) {
+              // Read NDJSON stream for progress updates
+              const reader = res.body.getReader();
+              const decoder = new TextDecoder();
+              let buffer = "";
+              data = null;
+
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split("\n");
+                buffer = lines.pop(); // keep incomplete line in buffer
+                for (const line of lines) {
+                  if (!line.trim()) continue;
+                  try {
+                    const evt = JSON.parse(line);
+                    if (evt.type === "progress") {
+                      const msgEl = document.getElementById("progressMessage");
+                      const detEl = document.getElementById("progressDetail");
+                      const fillEl = document.getElementById("progressFill");
+                      if (msgEl) msgEl.textContent = evt.message;
+                      if (evt.page_url && detEl) detEl.textContent = evt.page_url;
+                      if (evt.page && evt.total_pages && fillEl) {
+                        const pct = evt.stage === "page_complete"
+                          ? Math.round((evt.page / evt.total_pages) * 100)
+                          : Math.round(((evt.page - 0.5) / evt.total_pages) * 100);
+                        fillEl.style.width = pct + "%";
+                      }
+                    } else if (evt.type === "result") {
+                      data = evt;
+                    }
+                  } catch (_) {}
+                }
+              }
+              // Process any remaining buffer
+              if (buffer.trim()) {
+                try {
+                  const evt = JSON.parse(buffer);
+                  if (evt.type === "result") data = evt;
+                } catch (_) {}
+              }
+              if (!data) throw new Error("No result received from server");
+            } else {
+              data = await res.json().catch(() => ({
+                success: false,
+                error: `HTTP ${res.status} \u2014 invalid JSON response`,
+              }));
+            }
 
             if (!data.success)
               throw new Error(data.error || "Unknown error from server");
