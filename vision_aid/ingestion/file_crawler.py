@@ -142,9 +142,19 @@ def extract_links(html_content: str, base_url: str) -> Set[str]:
 
 def fetch_page(url: str, timeout: int = 30) -> str:
     """Fetch a single URL and return its HTML content as a string."""
+    print(f"[fetch_page] GET {url}")
     response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=timeout)
+    print(f"[fetch_page] Status: {response.status_code}")
+    print(f"[fetch_page] Content-Type: {response.headers.get('Content-Type', 'unknown')}")
+    print(f"[fetch_page] Content-Length (bytes): {len(response.content):,}")
+    print(f"[fetch_page] Final URL (after redirects): {response.url}")
+    if response.history:
+        print(f"[fetch_page] Redirects: {[r.status_code for r in response.history]}")
     response.raise_for_status()
-    return response.text
+    html = response.text
+    print(f"[fetch_page] HTML chars: {len(html):,}")
+    print(f"[fetch_page] First 500 chars:\n{html[:500]}")
+    return html
 
 
 def _normalize_url(url: str) -> str:

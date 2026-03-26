@@ -302,6 +302,13 @@ class AuditHandler(BaseHTTPRequestHandler):
             return
 
         if not nested:
+            print(f"  [url_audit] Fetched {len(html_content):,} chars from {url}")
+            # Detect bot-challenge pages (Cloudflare, etc.)
+            lower = html_content[:2000].lower()
+            if any(marker in lower for marker in ("just a moment", "cf-browser-verification", "ray id", "enable javascript and cookies")):
+                print("  [url_audit] WARNING: response looks like a bot-challenge page, not real content")
+            title_match = re.search(r"<title[^>]*>(.*?)</title>", html_content[:4000], re.IGNORECASE | re.DOTALL)
+            print(f"  [url_audit] <title>: {title_match.group(1).strip() if title_match else '(not found)'}")
             result = run_audit(html_content, api_key, model)
             self._send_json(result)
             return
