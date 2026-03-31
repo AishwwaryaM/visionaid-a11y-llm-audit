@@ -48,7 +48,7 @@ def element_location(element):
 
     attrs = dict(element.attrs)
 
-    return {
+    loc = {
         "tag": element.name,
         "id": attrs.get("id"),
         "class": attrs.get("class"),
@@ -56,6 +56,16 @@ def element_location(element):
         "attributes": attrs,
         "text_preview": element.get_text(strip=True)[:80]
     }
+
+    # Include href for links so findings can be located in the HTML
+    if element.name == "a":
+        loc["href"] = element.get("href", "")[:120]
+
+    # Include src for images/iframes so findings can be located
+    if element.name in ("img", "iframe"):
+        loc["src"] = element.get("src", "")[:120]
+
+    return loc
 
 
 def issue(rule_id, rule_name, element, description):
@@ -323,11 +333,12 @@ def audit_html_file(file_path):
 
         # LINK_001 — Missing accessible name
         if not a.get_text(strip=True) and not a.get("aria-label"):
+            href = a.get("href", "(no href)")[:80]
             results.append(issue(
                 "LINK_001",
                 "Link without accessible name",
                 a,
-                "Link has no text or aria-label."
+                f"Link has no text or aria-label. href=\"{href}\""
             ))
 
         # LINK_002 — Anchor without href
@@ -517,6 +528,10 @@ if __name__ == "__main__":
                 print(f"  Location: {location['css_path']}")
             if location.get("id"):
                 print(f"  ID: {location['id']}")
+            if location.get("href"):
+                print(f"  Href: {location['href']}")
+            if location.get("src"):
+                print(f"  Src: {location['src']}")
             if location.get("attributes"):
                 print(f"  Attributes: {location['attributes']}")
             if location.get("text_preview"):

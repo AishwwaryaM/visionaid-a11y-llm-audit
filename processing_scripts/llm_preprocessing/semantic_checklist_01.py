@@ -79,7 +79,8 @@ def extract(file_path):
                 seen.add(key)
                 flagged_links.append({
                     "text": text or None,
-                    "aria_label": aria or None
+                    "aria_label": aria or None,
+                    "href": a.get("href", "")[:120] or None,
                 })
     payload["flagged_links"] = flagged_links
 

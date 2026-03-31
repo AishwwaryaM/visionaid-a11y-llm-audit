@@ -23,6 +23,27 @@ def clean(text):
     return re.sub(r"\s+", " ", text.strip()) if text else ""
 
 
+def css_path(el, max_depth=4):
+    """Short CSS-like path to help locate an element in the HTML."""
+    parts = []
+    current = el
+    for _ in range(max_depth):
+        if not current or not current.name:
+            break
+        name = current.name
+        el_id = current.get("id")
+        if el_id:
+            parts.append(f"{name}#{el_id}")
+            break
+        el_class = current.get("class")
+        if el_class:
+            parts.append(f"{name}.{el_class[0]}")
+        else:
+            parts.append(name)
+        current = current.parent
+    return " > ".join(reversed(parts))
+
+
 def resolve_id(soup, el_id):
     """Return text of a single element by ID."""
     if not el_id:
@@ -81,6 +102,7 @@ def extract(file_path):
             "src": src,
             "alt": clean(alt) if alt else None,
             "alt_flags": alt_flags(clean(alt) if alt else None),
+            "selector": css_path(img),
         }
 
         if alt is None:
@@ -132,12 +154,18 @@ def extract(file_path):
         title_el = svg.find("title")
         desc_el  = svg.find("desc")
 
+        parent = svg.parent
+        parent_text = clean(parent.get_text())[:60] if parent else None
+
         svgs.append({
+            "selector":        css_path(svg),
             "role":            svg.get("role") or None,
             "aria_label":      clean(svg.get("aria-label", "")) or None,
             "aria_labelledby": svg.get("aria-labelledby") or None,
             "title":           clean(title_el.get_text()) if title_el else None,
             "desc":            clean(desc_el.get_text()) if desc_el else None,
+            "parent_tag":      parent.name if parent else None,
+            "parent_text":     parent_text,
         })
     payload["svgs"] = svgs
 
