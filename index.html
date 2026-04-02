@@ -506,7 +506,6 @@
             <p
               class="sr-only"
               id="auditStatus"
-              aria-live="assertive"
               role="status"
             ></p>
           </form>
@@ -760,7 +759,6 @@
 
           submitBtn.disabled = true;
           submitBtn.textContent = "Running\u2026";
-          submitBtn.setAttribute("aria-busy", "true");
           document.getElementById("auditStatus").textContent =
             "Audit is running, please wait.";
           resultsSection.style.display = "none";
@@ -898,7 +896,6 @@
           } finally {
             submitBtn.disabled = false;
             submitBtn.textContent = "Run Audit";
-            submitBtn.removeAttribute("aria-busy");
             document.getElementById("auditStatus").textContent = "";
           }
         });
