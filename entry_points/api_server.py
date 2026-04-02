@@ -296,12 +296,23 @@ class AuditHandler(BaseHTTPRequestHandler):
         )
 
         try:
-            html_content = fetch_pages_nested(url) if nested else fetch_page(url)
+            if nested:
+                html_content, crawl_tree = fetch_pages_nested(url)
+            else:
+                html_content = fetch_page(url)
+                crawl_tree = {}
         except Exception as exc:
             self._send_json({"success": False, "error": f"Failed to fetch URL: {exc}"}, 502)
             return
 
         if not nested:
+            print(f"  [url_audit] Fetched {len(html_content):,} chars from {url}")
+            # Detect bot-challenge pages (Cloudflare, etc.)
+            lower = html_content[:2000].lower()
+            if any(marker in lower for marker in ("just a moment", "cf-browser-verification", "ray id", "enable javascript and cookies")):
+                print("  [url_audit] WARNING: response looks like a bot-challenge page, not real content")
+            title_match = re.search(r"<title[^>]*>(.*?)</title>", html_content[:4000], re.IGNORECASE | re.DOTALL)
+            print(f"  [url_audit] <title>: {title_match.group(1).strip() if title_match else '(not found)'}")
             result = run_audit(html_content, api_key, model)
             self._send_json(result)
             return
@@ -331,6 +342,8 @@ class AuditHandler(BaseHTTPRequestHandler):
 
         merged = {
             "success": True,
+            "crawl_tree": crawl_tree,
+            "page_results": {},
             "programmatic_findings": [],
             "llm_results": {},
             "csv_report": None,
@@ -377,6 +390,13 @@ class AuditHandler(BaseHTTPRequestHandler):
                 continue
 
             merged["pages_audited"].append(page_url)
+
+            # Store per-page results for the tree view
+            merged["page_results"][page_url] = {
+                "programmatic_findings": page_result.get("programmatic_findings", []),
+                "llm_results": page_result.get("llm_results", {}),
+                "summary": page_result.get("summary", {}),
+            }
 
             page_csv = page_result.get("csv_report")
             if page_csv:

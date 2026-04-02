@@ -142,9 +142,19 @@ def extract_links(html_content: str, base_url: str) -> Set[str]:
 
 def fetch_page(url: str, timeout: int = 30) -> str:
     """Fetch a single URL and return its HTML content as a string."""
+    print(f"[fetch_page] GET {url}")
     response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=timeout)
+    print(f"[fetch_page] Status: {response.status_code}")
+    print(f"[fetch_page] Content-Type: {response.headers.get('Content-Type', 'unknown')}")
+    print(f"[fetch_page] Content-Length (bytes): {len(response.content):,}")
+    print(f"[fetch_page] Final URL (after redirects): {response.url}")
+    if response.history:
+        print(f"[fetch_page] Redirects: {[r.status_code for r in response.history]}")
     response.raise_for_status()
-    return response.text
+    html = response.text
+    print(f"[fetch_page] HTML chars: {len(html):,}")
+    print(f"[fetch_page] First 500 chars:\n{html[:500]}")
+    return html
 
 
 def _normalize_url(url: str) -> str:
@@ -160,22 +170,32 @@ def _normalize_url(url: str) -> str:
 
 
 def fetch_pages_nested(url: str, max_depth: int = 1,
-                       max_links_per_page: int = 10, timeout: int = 30) -> str:
+                       max_links_per_page: int = 10, timeout: int = 30) -> tuple:
     """Fetch HTML from *url* and its in-domain links up to *max_depth* levels.
 
-    All pages are concatenated with HTML comment separators and returned as a
-    single string, suitable for passing directly to the audit pipeline.
+    All pages are concatenated with HTML comment separators.
+
+    Returns:
+        Tuple of (html_str, tree) where *tree* maps each crawled URL to the
+        list of direct child URLs discovered from that page.
     """
     url = _normalize_url(url)
     base_domain = urlparse(url).netloc
     visited: Set[str] = set()
     parts: List[str] = []
+    tree: dict = {}  # parent_url -> [child_urls]
 
-    def _crawl(current_url: str, depth: int) -> None:
+    def _crawl(current_url: str, depth: int, parent_url: str = None) -> None:
         current_url = _normalize_url(current_url)
         if current_url in visited or depth < 0:
             return
         visited.add(current_url)
+
+        # Register in tree
+        if parent_url is not None:
+            tree.setdefault(parent_url, []).append(current_url)
+        tree.setdefault(current_url, [])  # ensure node exists even if leaf
+
         try:
             resp = requests.get(current_url, headers={'User-Agent': 'Mozilla/5.0'},
                                 timeout=timeout)
@@ -189,12 +209,12 @@ def fetch_pages_nested(url: str, max_depth: int = 1,
                 ]
                 for link in nested[:max_links_per_page]:
                     time.sleep(0.5)
-                    _crawl(link, depth - 1)
+                    _crawl(link, depth - 1, parent_url=current_url)
         except Exception as e:
             print(f"Warning: could not fetch {current_url}: {e}")
 
     _crawl(url, max_depth)
-    return "\n\n".join(parts)
+    return "\n\n".join(parts), tree
 
 
 if __name__ == "__main__":

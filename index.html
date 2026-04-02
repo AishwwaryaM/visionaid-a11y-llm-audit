@@ -785,6 +785,23 @@
             content.innerHTML = renderResults(data);
             resultsSection.style.display = "block";
 
+            // Wire up page tree node toggles
+            content.querySelectorAll(".page-node-header").forEach((header) => {
+              const toggle = () => {
+                const node = header.closest(".page-node");
+                const isOpen = node.classList.toggle("open");
+                header.setAttribute("aria-expanded", String(isOpen));
+                node.querySelector(":scope > .page-node-body").hidden = !isOpen;
+              };
+              header.addEventListener("click", toggle);
+              header.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  toggle();
+                }
+              });
+            });
+
             // Wire up LLM accordion toggles
             content.querySelectorAll(".llm-prompt-header").forEach((header) => {
               const toggle = () => {
@@ -997,6 +1014,113 @@
         return renderObjectResponse(parsed);
       }
 
+      // ── Shared per-page content renderer ─────────────────────────────────────
+      // Renders programmatic findings table + LLM accordion for one page's data.
+      // headingTag: "h3" for single-page, "h4" for tree nodes.
+
+      function renderPageContent(progFindings, llmResults, headingTag) {
+        const tag = headingTag || "h3";
+        let html = "";
+
+        html += `<div class="findings-section">`;
+        html += `<${tag}>Programmatic Findings <span class="findings-count">${progFindings.length}</span></${tag}>`;
+        if (progFindings.length === 0) {
+          html += '<p class="findings-empty">\u2713 No programmatic issues found.</p>';
+        } else {
+          html += '<div class="findings-table-wrapper"><table class="findings-table"><thead><tr><th scope="col">Rule ID</th><th scope="col">Rule Name</th><th scope="col">Description</th></tr></thead><tbody>';
+          for (const f of progFindings) {
+            html += `<tr>
+              <td><code class="rule-id">${esc(f.rule_id || "")}</code></td>
+              <td>${esc(f.rule_name || "")}</td>
+              <td>${esc(f.description || "")}</td>
+            </tr>`;
+          }
+          html += "</tbody></table></div>";
+        }
+        html += "</div>";
+
+        const llmEntries = Object.entries(llmResults || {});
+        if (llmEntries.length > 0) {
+          html += '<div class="findings-section">';
+          html += `<${tag}>LLM Analysis <span class="findings-count">${llmEntries.length} prompt${llmEntries.length !== 1 ? "s" : ""}</span></${tag}>`;
+          html += '<div class="llm-findings">';
+          for (const [name, result] of llmEntries) {
+            const wcag = (result.wcag_criteria || []).slice(0, 5);
+            const issueN = issueCount(result.parsed);
+
+            html += '<div class="llm-prompt">';
+            html += '<div class="llm-prompt-header" role="button" tabindex="0" aria-expanded="false">';
+            html += `<span class="llm-prompt-name">${esc(name.replace(/_/g, " "))}</span>`;
+            html += '<div class="llm-prompt-tags">';
+            if (result.checklist)
+              html += `<span class="llm-checklist-tag">${esc(result.checklist)}</span>`;
+            for (const c of wcag)
+              html += `<span class="wcag-tag">${esc(c)}</span>`;
+            if (result.status === "dry_run") {
+              html += '<span class="llm-badge dry-run">dry run</span>';
+            } else if (issueN > 0) {
+              html += `<span class="llm-badge has-issues">${issueN} issue${issueN !== 1 ? "s" : ""}</span>`;
+            } else if (result.parsed) {
+              html += '<span class="llm-badge pass">pass</span>';
+            }
+            html += "</div>";
+            html += '<svg class="llm-chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+            html += "</div>";
+            html += '<div class="llm-prompt-body" hidden>';
+            html += renderLLMBody(result.parsed);
+            html += "</div>";
+            html += "</div>";
+          }
+          html += "</div>";
+          html += "</div>";
+        }
+
+        return html;
+      }
+
+      // ── Recursive page tree node renderer ────────────────────────────────────
+
+      function renderPageNode(pageUrl, tree, pageResults) {
+        const result = (pageResults || {})[pageUrl] || {};
+        const children = (tree || {})[pageUrl] || [];
+        const progFindings = result.programmatic_findings || [];
+        const llmResults = result.llm_results || {};
+        const llmCount = Object.keys(llmResults).length;
+        const issueTotal = progFindings.length + llmCount;
+
+        const displayUrl = pageUrl.replace(/^https?:\/\//, "");
+
+        let html = '<div class="page-node">';
+
+        // Header (toggle)
+        html += '<div class="page-node-header" role="button" tabindex="0" aria-expanded="false">';
+        html += '<svg class="page-node-chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+        html += `<span class="page-node-url" title="${esc(pageUrl)}">${esc(displayUrl)}</span>`;
+        if (issueTotal > 0) {
+          html += `<span class="page-node-badge has-issues">${issueTotal} issue${issueTotal !== 1 ? "s" : ""}</span>`;
+        } else {
+          html += '<span class="page-node-badge pass">pass</span>';
+        }
+        html += "</div>";
+
+        // Body: findings for this page
+        html += '<div class="page-node-body" hidden>';
+        html += renderPageContent(progFindings, llmResults, "h4");
+        html += "</div>";
+
+        // Children (nested pages)
+        if (children.length > 0) {
+          html += '<div class="page-node-children">';
+          for (const childUrl of children) {
+            html += renderPageNode(childUrl, tree, pageResults);
+          }
+          html += "</div>";
+        }
+
+        html += "</div>";
+        return html;
+      }
+
       // ── Main results renderer ─────────────────────────────────────────────────
 
       function renderResults(data) {
@@ -1008,82 +1132,36 @@
         html += statCard(s.llm_prompts_run, "LLM Prompts Run");
         if (s.llm_prompts_skipped > 0)
           html += statCard(s.llm_prompts_skipped, "Prompts Skipped");
+        if (s.pages && s.pages > 1)
+          html += statCard(s.pages, "Pages Audited");
         if (s.estimated_cost_usd != null)
           html += statCard("$" + s.estimated_cost_usd.toFixed(4), "Est. Cost");
         html += "</div>";
 
         if (s.dry_run) {
-          html +=
-            '<p class="audit-notice">No API key provided \u2014 LLM analysis was skipped. Only programmatic findings are shown.</p>';
+          html += '<p class="audit-notice">No API key provided \u2014 LLM analysis was skipped. Only programmatic findings are shown.</p>';
         }
 
-        html += '<div class="findings-section">';
-        html += `<h3>Programmatic Findings <span class="findings-count">${data.programmatic_findings.length}</span></h3>`;
-        if (data.programmatic_findings.length === 0) {
-          html +=
-            '<p class="findings-empty">\u2713 No programmatic issues found.</p>';
+        const isMultiPage = data.crawl_tree && data.pages_audited && data.pages_audited.length > 0;
+
+        if (isMultiPage) {
+          // Find root: the URL that is not a child of any other crawled URL
+          const allChildren = new Set(
+            Object.values(data.crawl_tree).flat()
+          );
+          const rootUrl =
+            Object.keys(data.crawl_tree).find((u) => !allChildren.has(u)) ||
+            data.pages_audited[0];
+
+          html += '<div class="page-tree">';
+          html += renderPageNode(rootUrl, data.crawl_tree, data.page_results);
+          html += "</div>";
         } else {
-          html +=
-            '<div class="findings-table-wrapper"><table class="findings-table"><thead><tr><th scope="col">Rule ID</th><th scope="col">Rule Name</th><th scope="col">Description</th></tr></thead><tbody>';
-          for (const f of data.programmatic_findings) {
-            html += `<tr>
-            <td><code class="rule-id">${esc(f.rule_id || "")}</code></td>
-            <td>${esc(f.rule_name || "")}</td>
-            <td>${esc(f.description || "")}</td>
-          </tr>`;
-          }
-          html += "</tbody></table></div>";
-        }
-        html += "</div>";
-
-        const llmEntries = Object.entries(data.llm_results || {});
-        if (llmEntries.length > 0) {
-          html += '<div class="findings-section">';
-          html += `<h3>LLM Analysis <span class="findings-count">${
-            llmEntries.length
-          } prompt${llmEntries.length !== 1 ? "s" : ""}</span></h3>`;
-          html += '<div class="llm-findings">';
-          for (const [name, result] of llmEntries) {
-            const wcag = (result.wcag_criteria || []).slice(0, 5);
-            const issues = extractIssues(result.parsed);
-            const issueN = issueCount(result.parsed);
-
-            html += '<div class="llm-prompt">';
-
-            html +=
-              '<div class="llm-prompt-header" role="button" tabindex="0" aria-expanded="false">';
-            html += `<span class="llm-prompt-name">${esc(
-              name.replace(/_/g, " ")
-            )}</span>`;
-            html += '<div class="llm-prompt-tags">';
-            if (result.checklist)
-              html += `<span class="llm-checklist-tag">${esc(
-                result.checklist
-              )}</span>`;
-            for (const c of wcag)
-              html += `<span class="wcag-tag">${esc(c)}</span>`;
-            if (result.status === "dry_run") {
-              html += '<span class="llm-badge dry-run">dry run</span>';
-            } else if (issueN > 0) {
-              html += `<span class="llm-badge has-issues">${issueN} issue${
-                issueN !== 1 ? "s" : ""
-              }</span>`;
-            } else if (result.parsed) {
-              html += '<span class="llm-badge pass">pass</span>';
-            }
-            html += "</div>";
-            html +=
-              '<svg class="llm-chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
-            html += "</div>";
-
-            html += '<div class="llm-prompt-body" hidden>';
-            html += renderLLMBody(result.parsed);
-            html += "</div>";
-
-            html += "</div>";
-          }
-          html += "</div>";
-          html += "</div>";
+          html += renderPageContent(
+            data.programmatic_findings || [],
+            data.llm_results || {},
+            "h3"
+          );
         }
 
         if (data.csv_report) {
