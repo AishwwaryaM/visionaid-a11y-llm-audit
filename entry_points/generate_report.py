@@ -118,6 +118,68 @@ def _get_recommendation(item: dict) -> str:
         or ""
     )
 
+_GENERIC_FIXES: dict[str, str] = {
+    # Page Title
+    "PAGE_TITLE_001": "Add a <title> element inside <head> that describes the page content, e.g. <title>About Us - Company Name</title>.",
+    "PAGE_TITLE_002": "Remove duplicate <title> elements so only one remains inside <head>.",
+    "PAGE_TITLE_003": "Add descriptive text inside the existing <title> element, e.g. <title>Home - Company Name</title>.",
+
+    # Language
+    "LANG_001": "Add a lang attribute to the <html> element, e.g. <html lang=\"en\">.",
+    "LANG_002": "Replace the invalid lang value with a valid BCP 47 language tag, e.g. lang=\"en\" or lang=\"es\".",
+    "LANG_003": "Replace the invalid lang attribute with a valid BCP 47 language tag, e.g. lang=\"fr\".",
+
+    # Landmarks
+    "LAND_001": "Wrap the main page content in a <main> element.",
+    "LAND_002": "Keep only one <main> landmark per page. Use <section> or <div> for other content areas.",
+    "LAND_003": "Keep only one <header> (banner) landmark at the top level. Nest others inside <section> or <article>.",
+    "LAND_004": "Keep only one <footer> (contentinfo) landmark at the top level. Nest others inside <section> or <article>.",
+    "LAND_005": "Add a unique aria-label to each landmark of the same type, e.g. <nav aria-label=\"Primary navigation\"> and <nav aria-label=\"Footer navigation\">.",
+    "LAND_006": "Move this content inside an appropriate landmark element (<main>, <header>, <nav>, or <footer>).",
+
+    # Headings
+    "HEAD_001": "Fix the heading hierarchy so levels are not skipped. For example, an <h2> should follow an <h1>, not an <h4>.",
+    "HEAD_002": "Use only one <h1> per page. Change extra <h1> elements to <h2> or another appropriate level.",
+    "HEAD_003": "Add an <h1> element that describes the main topic of the page.",
+    "HEAD_004": "Add descriptive text inside the empty heading element, or remove it if it serves no purpose.",
+
+    # Links
+    "LINK_001": "Add visible text, an aria-label, or an alt attribute on a child image so the link has an accessible name. Example: <a href=\"/about\" aria-label=\"About us\">.",
+    "LINK_002": "Add an href attribute to the <a> element, or change it to a <button> if it triggers an action.",
+
+    # Navigation / Skip Links
+    "NAV_001": "Add a skip navigation link as the first element in <body>, e.g. <a href=\"#main\" class=\"skip-link\">Skip to main content</a>.",
+    "NAV_002": "Ensure the skip link's target ID exists on the page. Add id to the target element, e.g. <main id=\"main\">.",
+    "NAV_003": "Move the skip link so it is the first focusable element on the page.",
+
+    # Focus / Tabindex
+    "FOCUS_001": "Remove the positive tabindex value or set it to 0. Use DOM order to control focus sequence instead.",
+
+    # Tables
+    "TABLE_001": "Add a <caption> element inside the <table> to describe its purpose, e.g. <caption>Quarterly sales data</caption>.",
+    "TABLE_002": "Add <th> elements to identify column and/or row headers in the table.",
+
+    # Iframes
+    "IFRAME_001": "Add a title attribute to the <iframe> that describes its content, e.g. <iframe title=\"Company location map\">.",
+    "IFRAME_002": "Add descriptive text to the empty title attribute on the <iframe>.",
+
+    # Parsing
+    "PARSE_001": "Change one of the duplicate id values so every id on the page is unique.",
+
+    # Non-text Content (from other programmatic checkers)
+    "NON_TEXT_001": "Add a descriptive alt attribute to the <img> element, e.g. <img alt=\"Photo of company headquarters\">.",
+    "NON_TEXT_002": "Add descriptive alt text to the image inside the link or button so it describes the action or destination.",
+
+    # Forms (from forms_checklist_02.py)
+    "FORM_LABEL_001": "Add a <label> element with a matching 'for' attribute, wrap the control in a <label>, or add an aria-label attribute. Example: <label for=\"email\">Email address</label> <input id=\"email\">.",
+    "FORM_LABEL_003": "Add a proper <label> element instead of relying on placeholder text. Placeholder text disappears when the user starts typing and is not a reliable label.",
+    "FORM_GROUP_001": "Add a <legend> element as the first child of the <fieldset> to describe the group of controls. Example: <fieldset><legend>Shipping address</legend>...</fieldset>.",
+    "FORM_REQUIRED_001": "Add the 'required' attribute to this form control so assistive technology can announce it as required. Example: <input id=\"name\" required>.",
+    "FORM_INSTR_001": "Ensure the ID referenced by aria-describedby exists on the page. Add the missing element or fix the ID to match.",
+    "FORM_ERROR_001": "Add aria-describedby to the invalid control pointing to the error message element. Example: <input aria-invalid=\"true\" aria-describedby=\"error-msg\"> <p id=\"error-msg\">Please enter a valid email.</p>.",
+    "FORM_CUSTOM_001": "Add an appropriate role attribute to this interactive element. Example: <div onclick=\"...\" role=\"button\" tabindex=\"0\">.",
+}
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # FALSE POSITIVE FILTERING
@@ -370,6 +432,9 @@ def normalize_programmatic(findings: list[dict], page_title: str,
         category_suffix = wcag_name if wcag_name else rule_id
         category = f"Programmatic / {category_suffix}" if category_suffix else "Programmatic"
 
+        # Use generic fix recommendation if available, fall back to description
+        recommendation = _GENERIC_FIXES.get(rule_id, description or rule_name)
+
         rows.append(ReportRow(
             element_name=element_name,
             page_title=page_title,
@@ -377,7 +442,7 @@ def normalize_programmatic(findings: list[dict], page_title: str,
             steps_to_reproduce=f"Inspect element: {snippet[:200]}",
             actual_result=actual,
             expected_result=expected,
-            recommendation=description or rule_name,
+            recommendation=recommendation,
             wcag_sc=criterion,
             category=category,
             log_date=log_date,
@@ -389,7 +454,6 @@ def normalize_programmatic(findings: list[dict], page_title: str,
 # ── LLM prompt normalizers ─────────────────────────────────────────────────
 
 def _norm_page_title(data: dict, wcag: str, **ctx) -> list[ReportRow]:
-    """Normalize page_title prompt response."""
     rows = []
     for issue in data.get("issues", []):
         rows.append(ReportRow(
@@ -405,7 +469,6 @@ def _norm_page_title(data: dict, wcag: str, **ctx) -> list[ReportRow]:
 
 
 def _norm_heading_structure(data: dict, wcag: str, **ctx) -> list[ReportRow]:
-    """Normalize heading_structure prompt response."""
     rows = []
     for issue in data.get("issues", []):
         rows.append(ReportRow(
@@ -431,7 +494,6 @@ def _norm_heading_structure(data: dict, wcag: str, **ctx) -> list[ReportRow]:
 
 
 def _norm_link_clarity(data: list, wcag: str, **ctx) -> list[ReportRow]:
-    """Normalize link_clarity prompt response."""
     rows = []
     for item in data:
         if item.get("is_clear", True):
@@ -450,7 +512,6 @@ def _norm_link_clarity(data: list, wcag: str, **ctx) -> list[ReportRow]:
 
 
 def _norm_iframe_titles(data: list, wcag: str, **ctx) -> list[ReportRow]:
-    """Normalize iframe_titles prompt response."""
     rows = []
     for item in data:
         if item.get("is_descriptive", True):
@@ -469,7 +530,6 @@ def _norm_iframe_titles(data: list, wcag: str, **ctx) -> list[ReportRow]:
 
 
 def _norm_landmark_structure(data: dict, wcag: str, **ctx) -> list[ReportRow]:
-    """Normalize landmark_structure prompt response."""
     rows = []
     for issue in data.get("issues", []):
         rows.append(ReportRow(
@@ -485,7 +545,6 @@ def _norm_landmark_structure(data: dict, wcag: str, **ctx) -> list[ReportRow]:
 
 
 def _norm_label_quality(data: list, wcag: str, **ctx) -> list[ReportRow]:
-    """Normalize label_quality prompt response."""
     rows = []
     for item in data:
         if item.get("is_descriptive", True):
@@ -507,7 +566,6 @@ def _norm_label_quality(data: list, wcag: str, **ctx) -> list[ReportRow]:
 
 
 def _norm_required_field_indicators(data: list, wcag: str, **ctx) -> list[ReportRow]:
-    """Normalize required_field_indicators prompt response."""
     rows = []
     for item in data:
         issues = item.get("issues", [])
@@ -528,7 +586,6 @@ def _norm_required_field_indicators(data: list, wcag: str, **ctx) -> list[Report
 
 
 def _norm_informative_alt_quality(data: list, wcag: str, **ctx) -> list[ReportRow]:
-    """Normalize informative_alt_quality prompt response."""
     rows = []
     for item in data:
         issues = item.get("issues", [])
@@ -549,7 +606,6 @@ def _norm_informative_alt_quality(data: list, wcag: str, **ctx) -> list[ReportRo
 
 
 def _norm_decorative_verification(data: list, wcag: str, **ctx) -> list[ReportRow]:
-    """Normalize decorative_verification prompt response."""
     rows = []
     for item in data:
         if item.get("likely_decorative", True):
@@ -568,7 +624,6 @@ def _norm_decorative_verification(data: list, wcag: str, **ctx) -> list[ReportRo
 
 
 def _norm_actionable_image_alt(data: list, wcag: str, **ctx) -> list[ReportRow]:
-    """Normalize actionable_image_alt prompt response."""
     rows = []
     for item in data:
         issues = item.get("issues", [])
@@ -590,7 +645,6 @@ def _norm_actionable_image_alt(data: list, wcag: str, **ctx) -> list[ReportRow]:
 
 
 def _norm_svg_accessibility(data: list, wcag: str, **ctx) -> list[ReportRow]:
-    """Normalize svg_accessibility prompt response."""
     rows = []
     for item in data:
         issues = item.get("issues", [])
@@ -610,7 +664,6 @@ def _norm_svg_accessibility(data: list, wcag: str, **ctx) -> list[ReportRow]:
 
 
 def _norm_icon_font_accessibility(data: list, wcag: str, **ctx) -> list[ReportRow]:
-    """Normalize icon_font_accessibility prompt response."""
     rows = []
     for item in data:
         issues = item.get("issues", [])
