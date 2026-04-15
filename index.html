@@ -31,7 +31,18 @@
         <a href="#hero" class="navbar-brand" id="projectBrandLink"
           >P5: Digital Accessibility</a
         >
-        <ul class="nav-links">
+        <button
+          class="hamburger"
+          id="hamburgerBtn"
+          aria-controls="navLinks"
+          aria-expanded="false"
+          aria-label="Open navigation menu"
+        >
+          <span class="hamburger-bar"></span>
+          <span class="hamburger-bar"></span>
+          <span class="hamburger-bar"></span>
+        </button>
+        <ul class="nav-links" id="navLinks">
           <li><a href="#about" class="project-nav-link">About</a></li>
           <li><a href="#team" class="project-nav-link">Team</a></li>
           <li>
@@ -68,12 +79,13 @@
             </p>
           </div>
           <div class="survey-container">
-              <a
+            <a
               href="https://gtvault-my.sharepoint.com/:v:/g/personal/ahildebrandt3_gatech_edu/IQCbVzYIh9afSqegy5lM89HQAVDxiCbNS8i6-nFzSI2Egkg?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D&e=eeJ0dG"
               class="survey-btn"
               target="_blank"
               rel="noopener noreferrer"
-              >Link to P6 Demo</a>
+              >Link to P6 Demo</a
+            >
           </div>
         </section>
 
@@ -136,31 +148,64 @@
                 <div class="team-card-initial" aria-hidden="true">AH</div>
                 <h3>Annika Hildebrandt</h3>
                 <p class="team-role">Preprocessing & Quality Assurance</p>
-                <p class="team-desc">Developed the HTML preprocessing approach that classifies accessibility checks as programmatic or LLM-requiring, dramatically reducing token costs. Created and iterated on element-specific LLM prompts across all three WCAG checklists. Evaluated pipeline precision/recall against the manual audit baseline and refined prompts to eliminate duplicate findings.</p>
+                <p class="team-desc">
+                  Developed the HTML preprocessing approach that classifies
+                  accessibility checks as programmatic or LLM-requiring,
+                  dramatically reducing token costs. Created and iterated on
+                  element-specific LLM prompts across all three WCAG checklists.
+                  Evaluated pipeline precision/recall against the manual audit
+                  baseline and refined prompts to eliminate duplicate findings.
+                </p>
               </li>
               <li class="team-card">
                 <div class="team-card-initial" aria-hidden="true">AY</div>
                 <h3>Andrew Yin</h3>
                 <p class="team-role">Infrastructure & Integration</p>
-                <p class="team-desc">Built the end-to-end pipeline from raw HTML input to structured accessibility report, integrating programmatic checks with LLM analysis. Handles server deployment on Render and extended the semantic checklists to cover forms and non-text content. Created the web interface for running audits.</p>
+                <p class="team-desc">
+                  Built the end-to-end pipeline from raw HTML input to
+                  structured accessibility report, integrating programmatic
+                  checks with LLM analysis. Handles server deployment on Render
+                  and extended the semantic checklists to cover forms and
+                  non-text content. Created the web interface for running
+                  audits.
+                </p>
               </li>
               <li class="team-card">
                 <div class="team-card-initial" aria-hidden="true">CN</div>
                 <h3>Cole Niblett</h3>
                 <p class="team-role">Prompt Engineering & Evaluation</p>
-                <p class="team-desc">Built the modular LLM prompt pipeline for WCAG accessibility analysis, generating element-specific prompts tailored to preprocessed HTML inputs. Developed a multi-model evaluation harness comparing Claude and OpenAI outputs. Added OpenAI API support to the pipeline.</p>
+                <p class="team-desc">
+                  Built the modular LLM prompt pipeline for WCAG accessibility
+                  analysis, generating element-specific prompts tailored to
+                  preprocessed HTML inputs. Developed a multi-model evaluation
+                  harness comparing Claude and OpenAI outputs. Added OpenAI API
+                  support to the pipeline.
+                </p>
               </li>
               <li class="team-card">
                 <div class="team-card-initial" aria-hidden="true">NF</div>
                 <h3>Nicholas Fulton</h3>
                 <p class="team-role">Web Scraping & Architecture</p>
-                <p class="team-desc">Implemented the link crawler with configurable depth for multi-page site analysis. Formalized the codebase with abstract base classes and PyPI-compatible package structure for long-term sustainability. Ran initial experiments with open-source models to benchmark against frontier LLMs.</p>
+                <p class="team-desc">
+                  Implemented the link crawler with configurable depth for
+                  multi-page site analysis. Formalized the codebase with
+                  abstract base classes and PyPI-compatible package structure
+                  for long-term sustainability. Ran initial experiments with
+                  open-source models to benchmark against frontier LLMs.
+                </p>
               </li>
               <li class="team-card">
                 <div class="team-card-initial" aria-hidden="true">MM</div>
                 <h3>Mariana Mendez</h3>
                 <p class="team-role">Manual Audit & Accessibility</p>
-                <p class="team-desc">Completed the manual WCAG 2.1 AA accessibility audit of Vision Aid pages, establishing the ground-truth baseline for evaluating automated output. Made HTML/CSS accessibility improvements to the project site. Updated LLM prompts and the report generator to produce specific before/after HTML fix recommendations.</p>
+                <p class="team-desc">
+                  Completed the manual WCAG 2.1 AA accessibility audit of Vision
+                  Aid pages, establishing the ground-truth baseline for
+                  evaluating automated output. Made HTML/CSS accessibility
+                  improvements to the project site. Updated LLM prompts and the
+                  report generator to produce specific before/after HTML fix
+                  recommendations.
+                </p>
               </li>
             </ul>
           </div>
@@ -288,112 +333,114 @@
 
             <!-- HTML file input -->
             <div id="htmlInputSection">
-            <div class="form-group">
-              <label for="fileInput"
-                >HTML File
-                <span class="required-mark" aria-hidden="true">*</span
-                ><span class="sr-only">(required)</span></label
-              >
+              <div class="form-group">
+                <label for="fileInput"
+                  >HTML File
+                  <span class="required-mark" aria-hidden="true">*</span
+                  ><span class="sr-only">(required)</span></label
+                >
 
-              <div
-                class="drop-zone"
-                id="dropZone"
-                tabindex="0"
-                role="group"
-                aria-label="File upload area"
-              >
-                <input
-                  type="file"
-                  id="fileInput"
-                  accept=".html,.htm"
-                  class="file-input-hidden"
-                  aria-required="true"
-                />
+                <div
+                  class="drop-zone"
+                  id="dropZone"
+                  tabindex="0"
+                  role="group"
+                  aria-label="File upload area"
+                >
+                  <input
+                    type="file"
+                    id="fileInput"
+                    accept=".html,.htm"
+                    class="file-input-hidden"
+                    aria-required="true"
+                  />
 
-                <!-- Default state -->
-                <div id="dropZoneIdle">
-                  <svg
-                    class="drop-icon"
-                    aria-hidden="true"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M12 16V4m0 0L8 8m4-4 4 4" />
-                    <path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
-                  </svg>
-                  <p class="drop-label">Drag an <code>.html</code> file here</p>
-                  <p class="drop-hint">
-                    or
-                    <button type="button" class="browse-link" id="browseBtn">
-                      click to browse
+                  <!-- Default state -->
+                  <div id="dropZoneIdle">
+                    <svg
+                      class="drop-icon"
+                      aria-hidden="true"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M12 16V4m0 0L8 8m4-4 4 4" />
+                      <path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+                    </svg>
+                    <p class="drop-label">
+                      Drag an <code>.html</code> file here
+                    </p>
+                    <p class="drop-hint">
+                      or
+                      <button type="button" class="browse-link" id="browseBtn">
+                        click to browse
+                      </button>
+                    </p>
+                  </div>
+
+                  <!-- File selected state -->
+                  <div id="dropZoneFile" hidden>
+                    <svg
+                      class="drop-icon drop-icon--ok"
+                      aria-hidden="true"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                      />
+                      <polyline points="14 2 14 8 20 8" />
+                      <polyline points="9 15 11 17 15 13" />
+                    </svg>
+                    <p class="drop-filename" id="dropFilename"></p>
+                    <p class="drop-filesize" id="dropFilesize"></p>
+                    <button
+                      type="button"
+                      class="file-clear-btn"
+                      id="fileClearBtn"
+                      aria-label="Remove file"
+                    >
+                      &#10005; Remove
                     </button>
-                  </p>
+                  </div>
                 </div>
 
-                <!-- File selected state -->
-                <div id="dropZoneFile" hidden>
-                  <svg
-                    class="drop-icon drop-icon--ok"
-                    aria-hidden="true"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path
-                      d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-                    />
-                    <polyline points="14 2 14 8 20 8" />
-                    <polyline points="9 15 11 17 15 13" />
-                  </svg>
-                  <p class="drop-filename" id="dropFilename"></p>
-                  <p class="drop-filesize" id="dropFilesize"></p>
-                  <button
-                    type="button"
-                    class="file-clear-btn"
-                    id="fileClearBtn"
-                    aria-label="Remove file"
-                  >
-                    &#10005; Remove
-                  </button>
-                </div>
+                <p
+                  class="form-error"
+                  id="fileError"
+                  role="alert"
+                  aria-live="assertive"
+                  hidden
+                ></p>
+
+                <!-- Paste fallback -->
+                <details class="paste-fallback">
+                  <summary>Or paste HTML directly</summary>
+                  <textarea
+                    id="htmlInput"
+                    rows="12"
+                    placeholder="Paste the complete HTML source here…"
+                    spellcheck="false"
+                    autocomplete="off"
+                    aria-label="Paste HTML source code"
+                  ></textarea>
+                </details>
               </div>
-
-              <p
-                class="form-error"
-                id="fileError"
-                role="alert"
-                aria-live="assertive"
-                hidden
-              ></p>
-
-              <!-- Paste fallback -->
-              <details class="paste-fallback">
-                <summary>Or paste HTML directly</summary>
-                <textarea
-                  id="htmlInput"
-                  rows="12"
-                  placeholder="Paste the complete HTML source here…"
-                  spellcheck="false"
-                  autocomplete="off"
-                  aria-label="Paste HTML source code"
-                ></textarea>
-              </details>
             </div>
-            </div><!-- /#htmlInputSection -->
+            <!-- /#htmlInputSection -->
 
             <!-- URL input -->
             <div id="urlInputSection" hidden>
               <div class="form-group">
                 <label for="urlInput"
-                  >URL
-                  <span class="required-mark" aria-hidden="true">*</span
+                  >URL <span class="required-mark" aria-hidden="true">*</span
                   ><span class="sr-only">(required)</span></label
                 >
                 <input
@@ -434,7 +481,8 @@
                   aria-describedby="apiKeyHint"
                 />
                 <p class="field-hint" id="apiKeyHint">
-                  Without a key, only programmatic checks run. Never stored or logged.
+                  Without a key, only programmatic checks run. Never stored or
+                  logged.
                 </p>
               </div>
 
@@ -450,9 +498,13 @@
                     </option>
                   </optgroup>
                   <optgroup label="OpenAI">
-                    <option value="gpt-4o-mini">GPT-4o mini — faster, cheaper</option>
+                    <option value="gpt-4o-mini">
+                      GPT-4o mini — faster, cheaper
+                    </option>
                     <option value="gpt-4o">GPT-4o — higher quality</option>
-                    <option value="gpt-4.1-mini">GPT-4.1 mini — faster, cheaper</option>
+                    <option value="gpt-4.1-mini">
+                      GPT-4.1 mini — faster, cheaper
+                    </option>
                     <option value="gpt-4.1">GPT-4.1 — higher quality</option>
                   </optgroup>
                 </select>
@@ -462,6 +514,11 @@
             <button type="submit" class="audit-btn" id="auditSubmitBtn">
               Run Audit
             </button>
+            <p
+              class="sr-only"
+              id="auditStatus"
+              role="status"
+            ></p>
           </form>
 
           <!-- Results area -->
@@ -663,7 +720,10 @@
           e.preventDefault();
           clearError();
           const _urlErr = document.getElementById("urlError");
-          if (_urlErr) { _urlErr.hidden = true; _urlErr.textContent = ""; }
+          if (_urlErr) {
+            _urlErr.hidden = true;
+            _urlErr.textContent = "";
+          }
 
           const mode = getAuditMode();
           const model = document.getElementById("modelSelect").value;
@@ -683,17 +743,24 @@
               return;
             }
             endpoint = "/api/audit";
-            requestBody = { html_content: htmlContent, [keyField]: keyValue, model };
+            requestBody = {
+              html_content: htmlContent,
+              [keyField]: keyValue,
+              model,
+            };
           } else {
             const urlVal = document.getElementById("urlInput").value.trim();
             if (!urlVal) {
-              _urlErr.textContent = "Please enter a URL before running the audit.";
+              _urlErr.textContent =
+                "Please enter a URL before running the audit.";
               _urlErr.hidden = false;
               document.getElementById("urlInput").focus();
               return;
             }
             endpoint =
-              mode === "url-nested" ? "/api/audit/url/nested" : "/api/audit/url";
+              mode === "url-nested"
+                ? "/api/audit/url/nested"
+                : "/api/audit/url";
             requestBody = { url: urlVal, [keyField]: keyValue, model };
           }
 
@@ -703,7 +770,8 @@
 
           submitBtn.disabled = true;
           submitBtn.textContent = "Running\u2026";
-          submitBtn.setAttribute("aria-busy", "true");
+          document.getElementById("auditStatus").textContent =
+            "Audit is running, please wait.";
           resultsSection.style.display = "none";
           content.innerHTML = "";
 
@@ -836,6 +904,8 @@
               throw new Error(data.error || "Unknown error from server");
 
             content.innerHTML = renderResults(data);
+            document.getElementById("auditStatus").textContent =
+              "Audit complete. Results are shown below.";
             resultsSection.style.display = "block";
 
             // Wire up page tree node toggles
@@ -890,6 +960,8 @@
               });
             }
           } catch (err) {
+            document.getElementById("auditStatus").textContent =
+              "Audit failed. See error details below.";
             content.innerHTML = `
           <div class="audit-error" role="alert">
             <strong>Could not reach the audit server.</strong><br>
@@ -901,7 +973,7 @@
           } finally {
             submitBtn.disabled = false;
             submitBtn.textContent = "Run Audit";
-            submitBtn.removeAttribute("aria-busy");
+            document.getElementById("auditStatus").textContent = "";
           }
         });
 
@@ -1236,6 +1308,28 @@
 
         return html;
       }
+    </script>
+
+    <!-- Hamburger menu toggle -->
+    <script>
+      (function () {
+        var btn = document.getElementById('hamburgerBtn');
+        var menu = document.getElementById('navLinks');
+        btn.addEventListener('click', function () {
+          var open = btn.getAttribute('aria-expanded') === 'true';
+          btn.setAttribute('aria-expanded', String(!open));
+          btn.setAttribute('aria-label', open ? 'Open navigation menu' : 'Close navigation menu');
+          menu.classList.toggle('nav-open', !open);
+        });
+        // Close menu when a link is clicked
+        menu.addEventListener('click', function (e) {
+          if (e.target.tagName === 'A' || e.target.closest('a')) {
+            btn.setAttribute('aria-expanded', 'false');
+            btn.setAttribute('aria-label', 'Open navigation menu');
+            menu.classList.remove('nav-open');
+          }
+        });
+      })();
     </script>
   </body>
 </html>

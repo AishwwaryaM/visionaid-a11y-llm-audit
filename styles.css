@@ -158,6 +158,39 @@ a:hover {
   border-bottom-color: #0D7377;
 }
 
+/* --- Hamburger Button --- */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.hamburger-bar {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: #1A1A1A;
+  border-radius: 2px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* Animate to X when open */
+.hamburger[aria-expanded="true"] .hamburger-bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.hamburger[aria-expanded="true"] .hamburger-bar:nth-child(2) {
+  opacity: 0;
+}
+.hamburger[aria-expanded="true"] .hamburger-bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
 /* --- Hero --- */
 .hero {
   padding: 96px 24px 80px;
@@ -486,16 +519,62 @@ section:nth-child(even) {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .nav-links {
-    gap: 20px;
-  }
-
-  .nav-links a {
-    font-size: 0.875rem;
-  }
-
   .navbar-brand {
     font-size: 1rem;
+  }
+}
+
+/* Hamburger: 680px and below */
+@media (max-width: 680px) {
+  .hamburger {
+    display: flex;
+  }
+
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #FFFFFF;
+    border-bottom: 1px solid #e5e4e1;
+    flex-direction: column;
+    gap: 0;
+    padding: 8px 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  .nav-links.nav-open {
+    display: flex;
+  }
+
+  .nav-links li {
+    width: 100%;
+  }
+
+  .nav-links a,
+  .nav-links .nav-audit-btn {
+    display: block;
+    width: 100%;
+    padding: 12px 24px;
+    font-size: 1rem;
+    border-bottom: none;
+    border-radius: 0;
+    text-align: left;
+  }
+
+  .nav-links .nav-audit-btn {
+    border: none;
+    color: #0D7377;
+    font-weight: 600;
+  }
+
+  .navbar {
+    position: sticky;
+  }
+
+  .navbar-inner {
+    position: relative;
   }
 }
 
@@ -527,22 +606,6 @@ section:nth-child(even) {
 
   .lighthouse-grid {
     grid-template-columns: 1fr;
-  }
-
-  .nav-links {
-    gap: 14px;
-  }
-
-  .nav-links a {
-    font-size: 0.8125rem;
-  }
-
-  .navbar-brand {
-    font-size: 0.9375rem;
-  }
-
-  .navbar-inner {
-    height: 56px;
   }
 
   html {
