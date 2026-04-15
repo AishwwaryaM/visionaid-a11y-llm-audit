@@ -28,6 +28,9 @@ and "too_long" are pre-detected quality issues you should address.
 If the payload contains a "_context" key, use it (especially heading_outline
 and page_title) to understand what the images likely depict and suggest
 more specific alt text.
+Each image includes nearest_heading (the nearest heading before this element)
+and landmark_region (the page section: main, nav, header, footer, etc.). Use
+these to write a location_hint describing where the image appears on the page.
 
 Return a JSON array:
 [
@@ -38,7 +41,8 @@ Return a JSON array:
     "quality": "good" | "acceptable" | "poor",
     "issues": [],
     "suggested_improvement": "string or null",
-    "recommended_fix": "Show the exact HTML change using the image's actual src. For example: Change `<img src='/img/team.jpg' alt='photo of people'>` to `<img src='/img/team.jpg' alt='VisionAid volunteers at the 2024 accessibility workshop'>`"
+    "recommended_fix": "Show the exact HTML change using the image's actual src. For example: Change `<img src='/img/team.jpg' alt='photo of people'>` to `<img src='/img/team.jpg' alt='VisionAid volunteers at the 2024 accessibility workshop'>`",
+    "location_hint": "Where this image appears on the page, e.g. 'Under the \"Our Team\" heading in the main content area' or 'In the page header'"
   }
 ]
 
@@ -64,6 +68,9 @@ to carry informational content despite their empty alt as potential issues.
 
 If the payload contains a "_context" key, use it for additional page
 information to inform your evaluation but do not include it in your output.
+Each image includes nearest_heading (the nearest heading before this element)
+and landmark_region (the page section: main, nav, header, footer, etc.). Use
+these to write a location_hint describing where the image appears on the page.
 
 Return a JSON array:
 [
@@ -74,7 +81,8 @@ Return a JSON array:
     "confidence": "high" | "medium" | "low",
     "reason": "string",
     "recommendation": "string or null",
-    "recommended_fix": "If the image is NOT decorative, show the exact HTML change. For example: Change `<img src='/img/chart.png' alt=''>` to `<img src='/img/chart.png' alt='Bar chart showing 40% increase in accessibility scores'>`"
+    "recommended_fix": "If the image is NOT decorative, show the exact HTML change. For example: Change `<img src='/img/chart.png' alt=''>` to `<img src='/img/chart.png' alt='Bar chart showing 40% increase in accessibility scores'>`",
+    "location_hint": "Where this image appears on the page, e.g. 'Under the \"Results\" heading in the main content area' or 'In the page footer'"
   }
 ]
 
@@ -105,6 +113,9 @@ empty alt="" — flag cases where both the image alt and surrounding text are em
 
 If the payload contains a "_context" key, use it (especially heading_outline)
 to understand the page structure and suggest more specific action-oriented alt text.
+Each image includes nearest_heading (the nearest heading before this element)
+and landmark_region (the page section: main, nav, header, footer, etc.). Use
+these to write a location_hint describing where the image appears on the page.
 
 Return a JSON array:
 [
@@ -117,7 +128,8 @@ Return a JSON array:
     "describes_action_not_appearance": true/false,
     "issues": [],
     "suggested_improvement": "string or null",
-    "recommended_fix": "Show the exact HTML change using the element's actual attributes. For example: Change `<a href='/donate'><img src='/img/heart.png' alt='heart icon'></a>` to `<a href='/donate'><img src='/img/heart.png' alt='Donate to VisionAid'></a>`"
+    "recommended_fix": "Show the exact HTML change using the element's actual attributes. For example: Change `<a href='/donate'><img src='/img/heart.png' alt='heart icon'></a>` to `<a href='/donate'><img src='/img/heart.png' alt='Donate to VisionAid'></a>`",
+    "location_hint": "Where this image appears on the page, e.g. 'Under the \"Support Us\" heading in the main content area' or 'In the navigation bar'"
   }
 ]
 
@@ -185,6 +197,9 @@ For each SVG, evaluate:
 
 If the payload contains a "_context" key, use it for additional page
 information to inform your evaluation but do not include it in your output.
+Each SVG includes nearest_heading (the nearest heading before this element)
+and landmark_region (the page section: main, nav, header, footer, etc.). Use
+these to write a location_hint describing where the SVG appears on the page.
 
 Return a JSON array:
 [
@@ -198,7 +213,8 @@ Return a JSON array:
     "title_is_meaningful": true/false/null,
     "issues": [],
     "recommendation": "string or null",
-    "recommended_fix": "Show the exact HTML change. For example: Change `<svg viewBox='0 0 24 24'>` to `<svg viewBox='0 0 24 24' role='img' aria-labelledby='icon-title'><title id='icon-title'>Search</title>` — or if decorative: Add `aria-hidden='true'` to `<svg>`"
+    "recommended_fix": "Show the exact HTML change. For example: Change `<svg viewBox='0 0 24 24'>` to `<svg viewBox='0 0 24 24' role='img' aria-labelledby='icon-title'><title id='icon-title'>Search</title>` — or if decorative: Add `aria-hidden='true'` to `<svg>`",
+    "location_hint": "Where this SVG appears on the page, e.g. 'Under the \"Resources\" heading in the main content area' or 'In the navigation bar'"
   }
 ]
 
@@ -235,6 +251,9 @@ Assign one of these patterns:
 
 If the payload contains a "_context" key, use it for additional page
 information to inform your evaluation but do not include it in your output.
+Each icon includes nearest_heading (the nearest heading before this element)
+and landmark_region (the page section: main, nav, header, footer, etc.). Use
+these to write a location_hint describing where the icon appears on the page.
 
 Return a JSON array:
 [
@@ -247,7 +266,8 @@ Return a JSON array:
     "pattern": "decorative_correct" | "informative_correct" | "unlabeled_control" | "missing_label",
     "issues": [],
     "recommendation": "string or null",
-    "recommended_fix": "Show the exact HTML change using the element's actual classes. For example: Change `<a href='/facebook'><i class='fa fa-facebook' aria-hidden='true'></i></a>` to `<a href='/facebook' aria-label='VisionAid on Facebook'><i class='fa fa-facebook' aria-hidden='true'></i></a>`"
+    "recommended_fix": "Show the exact HTML change using the element's actual classes. For example: Change `<a href='/facebook'><i class='fa fa-facebook' aria-hidden='true'></i></a>` to `<a href='/facebook' aria-label='VisionAid on Facebook'><i class='fa fa-facebook' aria-hidden='true'></i></a>`",
+    "location_hint": "Where this icon appears on the page, e.g. 'In the social media links in the footer' or 'In the navigation bar'"
   }
 ]
 

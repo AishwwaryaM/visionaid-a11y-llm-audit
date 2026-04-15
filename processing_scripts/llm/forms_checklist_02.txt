@@ -23,6 +23,9 @@ but focus your evaluation on fields that have an effective_label value.
 
 If the payload contains a "_context" key, use it for additional page
 information to inform your evaluation but do not include it in your output.
+Each field includes nearest_heading (the nearest heading before this element)
+and landmark_region (the page section: main, nav, header, footer, etc.). Use
+these to write a location_hint describing where the field appears on the page.
 
 Return a JSON array, one entry per field:
 [
@@ -34,7 +37,8 @@ Return a JSON array, one entry per field:
     "is_descriptive": true/false,
     "issues": [],
     "suggested_improvement": "string or null",
-    "recommended_fix": "Show the exact HTML change using the field's actual id and attributes. For example: Change `<label for='email'>Input</label>` to `<label for='email'>Email address</label>`"
+    "recommended_fix": "Show the exact HTML change using the field's actual id and attributes. For example: Change `<label for='email'>Input</label>` to `<label for='email'>Email address</label>`",
+    "location_hint": "Where this field appears on the page, e.g. 'Under the \"Contact Us\" heading in the main content area' or 'In the registration form'"
   }
 ]
 
@@ -133,6 +137,9 @@ is to also communicate it visually and verbally in the label or instructions.
 
 If the payload contains a "_context" key, use it for additional page
 information to inform your evaluation but do not include it in your output.
+Each field includes nearest_heading (the nearest heading before this element)
+and landmark_region (the page section: main, nav, header, footer, etc.). Use
+these to write a location_hint describing where the field appears on the page.
 
 Return a JSON array:
 [
@@ -144,7 +151,8 @@ Return a JSON array:
     "requirement_in_instructions": true/false,
     "issues": [],
     "recommendation": "string or null",
-    "recommended_fix": "Show the exact HTML change using the field's actual id. For example: Change `<label for='email'>Email</label>` to `<label for='email'>Email <span aria-hidden='true'>*</span><span class='sr-only'>(required)</span></label>`"
+    "recommended_fix": "Show the exact HTML change using the field's actual id. For example: Change `<label for='email'>Email</label>` to `<label for='email'>Email <span aria-hidden='true'>*</span><span class='sr-only'>(required)</span></label>`",
+    "location_hint": "Where this field appears on the page, e.g. 'Under the \"Sign Up\" heading in the main content area' or 'In the contact form'"
   }
 ]
 

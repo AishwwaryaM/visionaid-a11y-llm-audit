@@ -64,10 +64,14 @@ Do NOT report the existence of a link description (handled programmatically).
 
 If the payload contains a "_context" key, use it (especially heading_outline)
 to understand the page structure and suggest more specific link text.
+Each link includes nearest_heading (the nearest heading before this element)
+and landmark_region (the page section: main, nav, header, footer, etc.). Use
+these to write a location_hint describing where the link appears on the page.
 
 Return JSON array: [ { "text": "…", "is_clear": true/false, "reason":
 "short explanation", "suggested_improvement": "string or null",
-"recommended_fix": "Show the exact HTML change using the element's actual attributes. For example: Change `<a href='/donate'>click here</a>` to `<a href='/donate'>Donate to VisionAid</a>`" }]
+"recommended_fix": "Show the exact HTML change using the element's actual attributes. For example: Change `<a href='/donate'>click here</a>` to `<a href='/donate'>Donate to VisionAid</a>`",
+"location_hint": "Where this link appears on the page, e.g. 'Under the \"Our Team\" heading in the main content area' or 'In the navigation bar'" }]
 
 Data: {payload}
 
@@ -102,10 +106,14 @@ purpose.
 
 If the payload contains a "_context" key, use it for additional page
 information to inform your evaluation but do not include it in your output.
+Each iframe includes nearest_heading (the nearest heading before this element)
+and landmark_region (the page section: main, nav, header, footer, etc.). Use
+these to write a location_hint describing where the iframe appears on the page.
 
 Return JSON array: [ { "title": "…", "is_descriptive": true/false,
 "reason": "short explanation", "suggested_improvement": "string or null",
-"recommended_fix": "Show the exact HTML change using the iframe's actual src. For example: Change `<iframe src='https://youtube.com/embed/abc'>` to `<iframe src='https://youtube.com/embed/abc' title='VisionAid introduction video'>`" }]
+"recommended_fix": "Show the exact HTML change using the iframe's actual src. For example: Change `<iframe src='https://youtube.com/embed/abc'>` to `<iframe src='https://youtube.com/embed/abc' title='VisionAid introduction video'>`",
+"location_hint": "Where this iframe appears on the page, e.g. 'Under the \"Watch Our Story\" heading in the main content area'" }]
 
 
 Data: {payload}

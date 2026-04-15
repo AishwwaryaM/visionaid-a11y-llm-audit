@@ -14,9 +14,31 @@ ARIA_LANDMARK_ROLES = {
 
 SKIP_INPUT_TYPES = {"hidden", "submit", "button", "reset", "image"}
 
+_LANDMARK_TAGS = {"main", "nav", "header", "footer", "aside"}
+_LANDMARK_ROLES = {"main", "navigation", "banner", "contentinfo", "complementary", "region", "search"}
+
 
 def clean(text):
     return re.sub(r"\s+", " ", text.strip()) if text else ""
+
+
+def get_nearest_heading(el):
+    """Return the text of the nearest preceding heading in the DOM."""
+    prev_headings = el.find_all_previous(re.compile(r"^h[1-6]$"))
+    return clean(prev_headings[0].get_text()) if prev_headings else None
+
+
+def get_landmark_region(el):
+    """Return the label or tag name of the nearest landmark ancestor."""
+    for ancestor in el.parents:
+        if not ancestor.name:
+            continue
+        if ancestor.name in _LANDMARK_TAGS:
+            return clean(ancestor.get("aria-label", "")) or ancestor.name
+        role = ancestor.get("role", "").lower()
+        if role in _LANDMARK_ROLES:
+            return clean(ancestor.get("aria-label", "")) or role
+    return None
 
 
 def estimate_tokens(text):
@@ -81,6 +103,8 @@ def extract(file_path):
                     "text": text or None,
                     "aria_label": aria or None,
                     "href": a.get("href", "")[:120] or None,
+                    "nearest_heading": get_nearest_heading(a),
+                    "landmark_region": get_landmark_region(a),
                 })
     payload["flagged_links"] = flagged_links
 
@@ -152,7 +176,12 @@ def extract(file_path):
 
     # ── IFRAMES ───────────────────────────────────────────────────────────────
     payload["iframes"] = [
-        {"title": clean(i.get("title", "")) or None, "src": i.get("src", "")[:80]}
+        {
+            "title": clean(i.get("title", "")) or None,
+            "src": i.get("src", "")[:80],
+            "nearest_heading": get_nearest_heading(i),
+            "landmark_region": get_landmark_region(i),
+        }
         for i in soup.find_all("iframe")
     ]
 

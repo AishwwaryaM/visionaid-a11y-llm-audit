@@ -35,7 +35,7 @@ def element_location(element):
 
     attrs = dict(element.attrs)
 
-    return {
+    loc = {
         "tag": element.name,
         "id": attrs.get("id"),
         "class": attrs.get("class"),
@@ -43,6 +43,12 @@ def element_location(element):
         "attributes": attrs,
         "text_preview": element.get_text(strip=True)[:80]
     }
+
+    # Include src for images/iframes so findings can be located
+    if element.name in ("img", "iframe", "input"):
+        loc["src"] = element.get("src", "")[:120]
+
+    return loc
 
 
 def issue(rule_id, rule_name, element, description):

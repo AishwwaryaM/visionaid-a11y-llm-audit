@@ -340,8 +340,24 @@ def normalize_programmatic(findings: list[dict], page_title: str,
         el_classes = location.get("class")
         snippet = location.get("text_preview") or location.get("snippet", "")
 
+        # Pull href/src from explicit fields first, then fall back to attributes dict
+        attrs = location.get("attributes") or {}
+        href = location.get("href") or attrs.get("href", "")
+        raw_src = location.get("src") or attrs.get("src", "")
+        src = raw_src.split("/")[-1][:60] if raw_src else ""
+
         if el_id:
             element_name = f"<{tag} id=\"{el_id}\">"
+        elif tag == "a" and href and snippet:
+            element_name = f"<a href=\"{href}\">{snippet[:50]}</a>"
+        elif tag == "a" and href:
+            element_name = f"<a href=\"{href}\">"
+        elif tag == "a" and snippet:
+            element_name = f"<a>{snippet[:60]}</a>"
+        elif tag in ("img", "input") and src:
+            element_name = f"<{tag} src=\"{src}\">"
+        elif tag == "iframe" and src:
+            element_name = f"<iframe src=\"{src}\">"
         elif el_classes:
             class_str = " ".join(el_classes) if isinstance(el_classes, list) else str(el_classes)
             element_name = f"<{tag} class=\"{class_str}\">"
@@ -395,6 +411,7 @@ def _norm_page_title(data: dict, wcag: str, **ctx) -> list[ReportRow]:
         rows.append(ReportRow(
             element_name="<title>",
             issue_title=f"Page Title: {issue}",
+            steps_to_reproduce="View the page in a browser and check the tab title, or inspect the <title> element in the HTML head",
             actual_result=issue,
             expected_result="Page title should be descriptive and match H1 content",
             recommendation=_get_recommendation(data),
@@ -411,6 +428,7 @@ def _norm_heading_structure(data: dict, wcag: str, **ctx) -> list[ReportRow]:
         rows.append(ReportRow(
             element_name="<h1>-<h6>",
             issue_title=f"Heading Structure: {issue}",
+            steps_to_reproduce="Review the heading hierarchy of the page using browser developer tools or an accessibility tree viewer",
             actual_result=issue,
             expected_result="Headings should form a logical content outline",
             recommendation=issue,
@@ -421,6 +439,7 @@ def _norm_heading_structure(data: dict, wcag: str, **ctx) -> list[ReportRow]:
         rows.append(ReportRow(
             element_name="<h1>-<h6>",
             issue_title=f"Vague heading: \"{heading}\"",
+            steps_to_reproduce=f"Search the page for a heading with the text: \"{heading}\"",
             actual_result=f"Heading \"{heading}\" is vague or unclear",
             expected_result="Headings should meaningfully describe their sections",
             recommendation=f"Replace \"{heading}\" with a more descriptive heading",
@@ -440,6 +459,7 @@ def _norm_link_clarity(data: list, wcag: str, **ctx) -> list[ReportRow]:
         rows.append(ReportRow(
             element_name=f"<a> \"{text}\"",
             issue_title=f"Unclear link: \"{text}\"",
+            steps_to_reproduce=item.get("location_hint") or "",
             actual_result=item.get("reason", ""),
             expected_result="Link text should clearly describe its destination when read alone",
             recommendation=_get_recommendation(item),
@@ -459,6 +479,7 @@ def _norm_iframe_titles(data: list, wcag: str, **ctx) -> list[ReportRow]:
         rows.append(ReportRow(
             element_name=f"<iframe> \"{title}\"",
             issue_title=f"Non-descriptive iframe title: \"{title}\"",
+            steps_to_reproduce=item.get("location_hint") or "",
             actual_result=item.get("reason", ""),
             expected_result="Iframe title should clearly describe the iframe content",
             recommendation=_get_recommendation(item),
@@ -475,6 +496,7 @@ def _norm_landmark_structure(data: dict, wcag: str, **ctx) -> list[ReportRow]:
         rows.append(ReportRow(
             element_name="<main>/<nav>/<header>/<footer>",
             issue_title=f"Landmark issue: {issue}",
+            steps_to_reproduce="Inspect the ARIA landmark regions of the page using an accessibility tool or browser extension",
             actual_result=issue,
             expected_result="Landmark structure should be appropriate and balanced",
             recommendation=issue,
@@ -497,6 +519,7 @@ def _norm_label_quality(data: list, wcag: str, **ctx) -> list[ReportRow]:
         rows.append(ReportRow(
             element_name=f"<{field_type} id=\"{field_id}\">",
             issue_title=f"Poor label quality: \"{label}\"",
+            steps_to_reproduce=item.get("location_hint") or "",
             actual_result="; ".join(issues),
             expected_result="Form field labels should be descriptive and meaningful",
             recommendation=_get_recommendation(item),
@@ -518,6 +541,7 @@ def _norm_required_field_indicators(data: list, wcag: str, **ctx) -> list[Report
         rows.append(ReportRow(
             element_name=f"<input id=\"{field_id}\">",
             issue_title=f"Required field not clearly indicated: \"{label}\"",
+            steps_to_reproduce=item.get("location_hint") or "",
             actual_result="; ".join(issues),
             expected_result="Required field status should be communicated visually and programmatically",
             recommendation=_get_recommendation(item),
@@ -539,6 +563,7 @@ def _norm_informative_alt_quality(data: list, wcag: str, **ctx) -> list[ReportRo
         rows.append(ReportRow(
             element_name=f"<img src=\"{src}\">",
             issue_title=f"Poor alt text quality ({item.get('quality', 'poor')}): \"{alt}\"",
+            steps_to_reproduce=item.get("location_hint") or "",
             actual_result="; ".join(issues),
             expected_result="Alt text should accurately and concisely describe image content",
             recommendation=_get_recommendation(item),
@@ -558,6 +583,7 @@ def _norm_decorative_verification(data: list, wcag: str, **ctx) -> list[ReportRo
         rows.append(ReportRow(
             element_name=f"<img src=\"{src}\" alt=\"\">",
             issue_title=f"Possibly mis-marked as decorative: {src}",
+            steps_to_reproduce=item.get("location_hint") or "",
             actual_result=item.get("reason", ""),
             expected_result="Image marked as decorative (alt=\"\") should truly be decorative",
             recommendation=_get_recommendation(item),
@@ -580,6 +606,7 @@ def _norm_actionable_image_alt(data: list, wcag: str, **ctx) -> list[ReportRow]:
         rows.append(ReportRow(
             element_name=f"<img src=\"{src}\"> ({context})",
             issue_title=f"Actionable image alt issue: \"{alt}\"",
+            steps_to_reproduce=item.get("location_hint") or "",
             actual_result="; ".join(issues),
             expected_result="Images in links/buttons should describe the action/destination, not appearance",
             recommendation=_get_recommendation(item),
@@ -600,6 +627,7 @@ def _norm_svg_accessibility(data: list, wcag: str, **ctx) -> list[ReportRow]:
         rows.append(ReportRow(
             element_name=f"<svg> \"{label}\"",
             issue_title=f"SVG accessibility issue: {label}",
+            steps_to_reproduce=item.get("location_hint") or "",
             actual_result="; ".join(issues),
             expected_result="SVGs should have role=\"img\" and an accessible name via title + aria-labelledby",
             recommendation=_get_recommendation(item),
@@ -621,6 +649,7 @@ def _norm_icon_font_accessibility(data: list, wcag: str, **ctx) -> list[ReportRo
         rows.append(ReportRow(
             element_name=f"<i class=\"{classes}\">",
             issue_title=f"Icon font issue ({pattern}): {classes}",
+            steps_to_reproduce=item.get("location_hint") or "",
             actual_result="; ".join(issues),
             expected_result="Icon fonts should be properly labeled or hidden from assistive technology",
             recommendation=_get_recommendation(item),

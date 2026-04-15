@@ -19,8 +19,31 @@ ALT_REDUNDANT_RE    = re.compile(
 )
 
 
+_LANDMARK_TAGS = {"main", "nav", "header", "footer", "aside"}
+_LANDMARK_ROLES = {"main", "navigation", "banner", "contentinfo", "complementary", "region", "search"}
+
+
 def clean(text):
     return re.sub(r"\s+", " ", text.strip()) if text else ""
+
+
+def get_nearest_heading(el):
+    """Return the text of the nearest preceding heading in the DOM."""
+    prev_headings = el.find_all_previous(re.compile(r"^h[1-6]$"))
+    return clean(prev_headings[0].get_text()) if prev_headings else None
+
+
+def get_landmark_region(el):
+    """Return the label or tag name of the nearest landmark ancestor."""
+    for ancestor in el.parents:
+        if not ancestor.name:
+            continue
+        if ancestor.name in _LANDMARK_TAGS:
+            return clean(ancestor.get("aria-label", "")) or ancestor.name
+        role = ancestor.get("role", "").lower()
+        if role in _LANDMARK_ROLES:
+            return clean(ancestor.get("aria-label", "")) or role
+    return None
 
 
 def css_path(el, max_depth=4):
@@ -103,6 +126,8 @@ def extract(file_path):
             "alt": clean(alt) if alt else None,
             "alt_flags": alt_flags(clean(alt) if alt else None),
             "selector": css_path(img),
+            "nearest_heading": get_nearest_heading(img),
+            "landmark_region": get_landmark_region(img),
         }
 
         if alt is None:
@@ -166,6 +191,8 @@ def extract(file_path):
             "desc":            clean(desc_el.get_text()) if desc_el else None,
             "parent_tag":      parent.name if parent else None,
             "parent_text":     parent_text,
+            "nearest_heading": get_nearest_heading(svg),
+            "landmark_region": get_landmark_region(svg),
         })
     payload["svgs"] = svgs
 
@@ -211,6 +238,8 @@ def extract(file_path):
             "visible_text":   visible_text,
             "sibling_text":   sibling_text,
             "sole_content":   sole_content,   # True = icon is the only content of a link/button
+            "nearest_heading": get_nearest_heading(el),
+            "landmark_region": get_landmark_region(el),
         })
 
     payload["icon_fonts"] = icon_fonts
