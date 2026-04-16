@@ -866,7 +866,7 @@
             // const decoder = new TextDecoder();
             // let buffer = "";
             // let data = null;
-            const data = await res.json();
+            let data = await res.json();
 
             // Milestone tracking for screen reader announcements
             let llmAnnouncedStart = false;
