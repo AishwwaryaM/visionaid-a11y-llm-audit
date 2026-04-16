@@ -34,11 +34,21 @@ app.add_middleware(
 # EXACTLY as they are in your current script.
 
 def _resolve_api_key(data: dict, model: str) -> str:
-    """Resolve key from request body or environment variables."""
-    from processing_scripts.llm_client.client import is_openai_model
+    """Return the appropriate API key for *model* from the request body or env.
+
+    OpenAI models use the ``openai_api_key`` field / ``OPENAI_API_KEY`` env.
+    Anthropic models use the ``api_key`` field / ``ANTHROPIC_API_KEY`` env.
+    Per-request keys take priority over environment variables.
+    """
     if is_openai_model(model):
-        return data.get("openai_api_key", "").strip() or os.getenv("OPENAI_API_KEY", "")
-    return data.get("api_key", "").strip() or o
+        return (
+            data.get("openai_api_key", "").strip()
+            or os.getenv("OPENAI_API_KEY", "")
+        )
+    return (
+        data.get("api_key", "").strip()
+        or os.getenv("ANTHROPIC_API_KEY", "")
+    )
 
 def run_audit(html_content: str, api_key: str, model: str, progress_callback=None) -> dict:
     """Write *html_content* to a temp file, run the pipeline, return results.
