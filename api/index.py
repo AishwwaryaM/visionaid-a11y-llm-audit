@@ -58,11 +58,15 @@ def run_audit(html_content: str, api_key: str, model: str, progress_callback=Non
     """
     dry_run = not api_key
     # Vercel allows writing to /tmp for ephemeral storage
-    tmp_dir = tempfile.mkdtemp(prefix="visionaid_audit_")
+    tmp_dir = tempfile.mkdtemp(prefix="visionaid_audit_", dir="/tmp")
     try:
         html_path = Path(tmp_dir) / "input.html"
         html_path.write_text(html_content, encoding="utf-8")
-        tmp_dir = tempfile.mkdtemp(prefix="visionaid_audit_", dir="/tmp")
+
+
+        # 2. DEFINE AND CREATE THE OUTPUT DIRECTORY
+        output_dir = Path(tmp_dir) / "output"
+        output_dir.mkdir(parents=True, exist_ok=True)
 
         manifest = run_pipeline(
             html_path=str(html_path),
