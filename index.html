@@ -472,18 +472,32 @@
                   ><span id="apiKeyLabel">Anthropic API Key</span>
                   <span class="optional-mark">(optional)</span></label
                 >
-                <input
-                  type="password"
-                  id="apiKeyInput"
-                  name="api_key"
-                  placeholder="sk-ant-api03-…"
-                  autocomplete="off"
-                  aria-describedby="apiKeyHint"
-                />
+                <div class="api-key-row">
+                  <input
+                    type="password"
+                    id="apiKeyInput"
+                    name="api_key"
+                    placeholder="sk-ant-api03-…"
+                    autocomplete="off"
+                    aria-describedby="apiKeyHint apiKeyValidateStatus"
+                  />
+                  <button
+                    type="button"
+                    id="validateKeyBtn"
+                    class="validate-key-btn"
+                    aria-label="Validate API key"
+                  >Validate</button>
+                </div>
                 <p class="field-hint" id="apiKeyHint">
                   Without a key, only programmatic checks run. Never stored or
                   logged.
                 </p>
+                <p
+                  class="key-validate-status"
+                  id="apiKeyValidateStatus"
+                  aria-live="polite"
+                  hidden
+                ></p>
               </div>
 
               <div class="form-group">
@@ -606,6 +620,57 @@
       }
 
       modelSelect.addEventListener("change", updateApiKeyField);
+
+      // ── API key validation ────────────────────────────────────────────────────
+      const validateKeyBtn = document.getElementById("validateKeyBtn");
+      const apiKeyValidateStatus = document.getElementById("apiKeyValidateStatus");
+
+      validateKeyBtn.addEventListener("click", async () => {
+        const key = apiKeyInput.value.trim();
+        if (!key) {
+          apiKeyValidateStatus.hidden = false;
+          apiKeyValidateStatus.className = "key-validate-status invalid";
+          apiKeyValidateStatus.textContent = "Please enter an API key first.";
+          return;
+        }
+
+        const provider = isOpenAIModel(modelSelect.value) ? "openai" : "anthropic";
+
+        validateKeyBtn.disabled = true;
+        apiKeyValidateStatus.hidden = false;
+        apiKeyValidateStatus.className = "key-validate-status validating";
+        apiKeyValidateStatus.textContent = "Validating\u2026";
+
+        try {
+          const resp = await fetch("/api/validate-key", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ api_key: key, provider }),
+          });
+          const result = await resp.json();
+          if (result.valid) {
+            apiKeyValidateStatus.className = "key-validate-status valid";
+            apiKeyValidateStatus.textContent = "\u2713 Valid API key";
+          } else {
+            apiKeyValidateStatus.className = "key-validate-status invalid";
+            apiKeyValidateStatus.textContent =
+              "\u2717 " + (result.error || "Invalid API key");
+          }
+        } catch {
+          apiKeyValidateStatus.className = "key-validate-status invalid";
+          apiKeyValidateStatus.textContent =
+            "\u2717 Could not reach validation endpoint.";
+        } finally {
+          validateKeyBtn.disabled = false;
+        }
+      });
+
+      // Clear validation status when the key is edited
+      apiKeyInput.addEventListener("input", () => {
+        apiKeyValidateStatus.hidden = true;
+        apiKeyValidateStatus.textContent = "";
+        apiKeyValidateStatus.className = "key-validate-status";
+      });
 
       // ── Input mode switching ──────────────────────────────────────────────────
       const htmlInputSection = document.getElementById("htmlInputSection");
@@ -1065,6 +1130,12 @@
             shown.add(k);
             break;
           }
+        }
+
+        if (item.impact && !shown.has("impact")) {
+          const lvl = item.impact.toLowerCase();
+          html += `<span class="impact-badge impact-${lvl}">${esc(item.impact)}</span>`;
+          shown.add("impact");
         }
 
         const rest = Object.entries(item).filter(([k]) => !shown.has(k));

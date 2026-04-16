@@ -253,6 +253,8 @@ class AuditHandler(BaseHTTPRequestHandler):
             self._handle_url_audit(nested=False)
         elif self.path == "/api/audit/url/nested":
             self._handle_url_audit(nested=True)
+        elif self.path == "/api/validate-key":
+            self._handle_validate_key()
         else:
             self.send_error(404, "Not Found")
 
@@ -497,6 +499,54 @@ class AuditHandler(BaseHTTPRequestHandler):
         # Final event: the full merged result
         merged["type"] = "result"
         _send_event(merged)
+
+    def _handle_validate_key(self):
+        """Validate an API key with a lightweight call to the provider."""
+        import urllib.request
+        import urllib.error
+
+        length = int(self.headers.get("Content-Length", 0))
+        body = self.rfile.read(length)
+        try:
+            data = json.loads(body)
+        except json.JSONDecodeError:
+            self._send_json({"valid": False, "error": "Invalid JSON"}, 400)
+            return
+
+        api_key = data.get("api_key", "").strip()
+        provider = data.get("provider", "anthropic")
+
+        if not api_key:
+            self._send_json({"valid": False, "error": "No key provided"})
+            return
+
+        try:
+            if provider == "openai":
+                req = urllib.request.Request(
+                    "https://api.openai.com/v1/models",
+                    headers={"Authorization": f"Bearer {api_key}"},
+                )
+            else:
+                req = urllib.request.Request(
+                    "https://api.anthropic.com/v1/models",
+                    headers={
+                        "x-api-key": api_key,
+                        "anthropic-version": "2023-06-01",
+                    },
+                )
+            with urllib.request.urlopen(req, timeout=10):
+                self._send_json({"valid": True})
+        except urllib.error.HTTPError as exc:
+            if exc.code in (401, 403):
+                self._send_json(
+                    {"valid": False, "error": "Invalid or unauthorized API key"}
+                )
+            else:
+                self._send_json(
+                    {"valid": False, "error": f"Provider returned HTTP {exc.code}"}
+                )
+        except Exception as exc:
+            self._send_json({"valid": False, "error": str(exc)})
 
     def _send_json(self, obj: dict, status: int = 200):
         body = json.dumps(obj, indent=2, ensure_ascii=False).encode("utf-8")

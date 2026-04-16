@@ -27,7 +27,7 @@ from bs4 import BeautifulSoup
 
 @dataclass
 class ReportRow:
-    """One row in the final CSV report (13 columns from CLAUDE.md spec)."""
+    """One row in the final CSV report (14 columns)."""
 
     ID: int = 0
     element_name: str = ""
@@ -40,6 +40,7 @@ class ReportRow:
     recommendation: str = ""
     wcag_sc: str = ""
     category: str = ""
+    impact: str = ""
     log_date: str = ""
     reported_by: str = ""
 
@@ -383,6 +384,66 @@ def filter_false_positives(
     return kept, suppressed
 
 
+# ── Impact helpers ──────────────────────────────────────────────────────────
+
+# Axe-core style impact levels: Critical > Serious > Moderate > Minor
+_RULE_IMPACT: dict[str, str] = {
+    # Non-text content — blocking for screen reader users
+    "missing_alt": "Critical",
+    "image_alt": "Critical",
+    # Duplicate IDs break AT navigation
+    "duplicate_id": "Serious",
+    "duplicate_id_aria": "Serious",
+    # Form accessibility
+    "label": "Critical",
+    "label_content_name_mismatch": "Serious",
+    # Page/document
+    "html_has_lang": "Serious",
+    "html_lang_valid": "Serious",
+    "document_title": "Serious",
+}
+
+_WCAG_CRITERION_IMPACT: dict[str, str] = {
+    # Level A — non-text content / alternatives
+    "1.1.1": "Critical",
+    # Level A — keyboard / focus
+    "2.1.1": "Critical",
+    "2.1.2": "Critical",
+    # Level A — language
+    "3.1.1": "Serious",
+    # Level A — parsing
+    "4.1.1": "Serious",
+    "4.1.2": "Serious",
+    # Level AA
+    "1.4.3": "Serious",
+    "1.4.4": "Moderate",
+    "2.4.3": "Moderate",
+    "2.4.6": "Moderate",
+    "3.1.2": "Minor",
+}
+
+
+def _derive_impact(rule_id: str = "", wcag_criterion: str = "") -> str:
+    """Return an impact level (Critical/Serious/Moderate/Minor) for a finding.
+
+    Checks rule-specific overrides first, then WCAG criterion level, then
+    falls back to 'Serious' for unknown Level A issues.
+    """
+    if rule_id and rule_id.lower() in _RULE_IMPACT:
+        return _RULE_IMPACT[rule_id.lower()]
+    # wcag_criterion may be "1.1.1" or "WCAG 1.1.1" — normalise
+    criterion = re.sub(r"[^0-9.]", "", wcag_criterion or "").strip(".")
+    if criterion in _WCAG_CRITERION_IMPACT:
+        return _WCAG_CRITERION_IMPACT[criterion]
+    # WCAG A/AA heuristic based on first digit
+    if criterion.startswith(("1.", "2.", "3.", "4.")):
+        parts = criterion.split(".")
+        if len(parts) == 3:
+            # Most WCAG A criteria default to Serious; AA to Moderate
+            return "Serious"
+    return "Moderate"
+
+
 # ── Programmatic findings normalizer ───────────────────────────────────────
 
 def normalize_programmatic(findings: list[dict], page_title: str,
@@ -461,6 +522,7 @@ def normalize_programmatic(findings: list[dict], page_title: str,
             recommendation=recommendation,
             wcag_sc=criterion,
             category=category,
+            impact=_derive_impact(rule_id=rule_id, wcag_criterion=criterion),
             log_date=log_date,
             reported_by="Programmatic",
         ))
@@ -481,6 +543,7 @@ def _norm_page_title(data: dict, wcag: str, **ctx) -> list[ReportRow]:
             recommendation=_get_recommendation(data),
             wcag_sc=wcag,
             category="Semantic Structure / Page Title",
+            impact="Serious",
         ))
     return rows
 
@@ -497,6 +560,7 @@ def _norm_heading_structure(data: dict, wcag: str, **ctx) -> list[ReportRow]:
             recommendation=issue,
             wcag_sc=wcag,
             category="Semantic Structure / Headings",
+            impact="Moderate",
         ))
     for heading in data.get("vague_headings", []):
         rows.append(ReportRow(
@@ -508,6 +572,7 @@ def _norm_heading_structure(data: dict, wcag: str, **ctx) -> list[ReportRow]:
             recommendation=f"Replace \"{heading}\" with a more descriptive heading",
             wcag_sc=wcag,
             category="Semantic Structure / Headings",
+            impact="Moderate",
         ))
     return rows
 
@@ -527,6 +592,7 @@ def _norm_link_clarity(data: list, wcag: str, **ctx) -> list[ReportRow]:
             recommendation=_get_recommendation(item),
             wcag_sc=wcag,
             category="Semantic Structure / Links",
+            impact="Moderate",
         ))
     return rows
 
@@ -546,6 +612,7 @@ def _norm_iframe_titles(data: list, wcag: str, **ctx) -> list[ReportRow]:
             recommendation=_get_recommendation(item),
             wcag_sc=wcag,
             category="Semantic Structure / Iframes",
+            impact="Serious",
         ))
     return rows
 
@@ -562,6 +629,7 @@ def _norm_landmark_structure(data: dict, wcag: str, **ctx) -> list[ReportRow]:
             recommendation=issue,
             wcag_sc=wcag,
             category="Semantic Structure / Landmarks",
+            impact="Minor",
         ))
     return rows
 
@@ -584,6 +652,7 @@ def _norm_label_quality(data: list, wcag: str, **ctx) -> list[ReportRow]:
             recommendation=_get_recommendation(item),
             wcag_sc=wcag,
             category="Forms / Label Quality",
+            impact="Serious",
         ))
     return rows
 
@@ -605,6 +674,7 @@ def _norm_required_field_indicators(data: list, wcag: str, **ctx) -> list[Report
             recommendation=_get_recommendation(item),
             wcag_sc=wcag,
             category="Forms / Required Fields",
+            impact="Moderate",
         ))
     return rows
 
@@ -626,6 +696,7 @@ def _norm_informative_alt_quality(data: list, wcag: str, **ctx) -> list[ReportRo
             recommendation=_get_recommendation(item),
             wcag_sc=wcag,
             category="Non-text Content / Informative Images",
+            impact="Serious",
         ))
     return rows
 
@@ -645,6 +716,7 @@ def _norm_decorative_verification(data: list, wcag: str, **ctx) -> list[ReportRo
             recommendation=_get_recommendation(item),
             wcag_sc=wcag,
             category="Non-text Content / Decorative Verification",
+            impact="Moderate",
         ))
     return rows
 
@@ -667,6 +739,7 @@ def _norm_actionable_image_alt(data: list, wcag: str, **ctx) -> list[ReportRow]:
             recommendation=_get_recommendation(item),
             wcag_sc=wcag,
             category="Non-text Content / Actionable Images",
+            impact="Critical",
         ))
     return rows
 
@@ -687,6 +760,7 @@ def _norm_svg_accessibility(data: list, wcag: str, **ctx) -> list[ReportRow]:
             recommendation=_get_recommendation(item),
             wcag_sc=wcag,
             category="Non-text Content / SVGs",
+            impact="Moderate",
         ))
     return rows
 
@@ -708,6 +782,7 @@ def _norm_icon_font_accessibility(data: list, wcag: str, **ctx) -> list[ReportRo
             recommendation=_get_recommendation(item),
             wcag_sc=wcag,
             category="Non-text Content / Icon Fonts",
+            impact="Moderate",
         ))
     return rows
 
