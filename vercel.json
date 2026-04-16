@@ -1,20 +1,15 @@
 {
   "version": 2,
-  "functions": {
-    "entry_points/vercel_handler.py": {
-      "runtime": "@vercel/python"
-    }
-  },
   "rewrites": [
     {
-      "source": "/styles.css",
-      "destination": "/styles.css"
-    },
-    {
-      "source": "/favicon.ico",
-      "destination": "/favicon.ico"
-    },
-    { "source": "/api/(.*)", "destination": "/entry_points/vercel_handler.py" },
+          "source": "/styles.css",
+          "destination": "/styles.css"
+        },
+        {
+          "source": "/favicon.ico",
+          "destination": "/favicon.ico"
+        },
+    { "source": "/api/(.*)", "destination": "/api/index.py" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }

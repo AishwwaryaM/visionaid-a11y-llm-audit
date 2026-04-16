@@ -862,10 +862,11 @@
             });
 
             // All endpoints now stream NDJSON
-            const reader = res.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = "";
-            let data = null;
+            // const reader = res.body.getReader();
+            // const decoder = new TextDecoder();
+            // let buffer = "";
+            // let data = null;
+            const data = await res.json();
 
             // Milestone tracking for screen reader announcements
             let llmAnnouncedStart = false;
