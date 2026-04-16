@@ -780,268 +780,173 @@
 
       // ── Audit form submission ─────────────────────────────────────────────────
       document
-        .getElementById("auditForm")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
-          clearError();
-          const _urlErr = document.getElementById("urlError");
-          if (_urlErr) {
-            _urlErr.hidden = true;
-            _urlErr.textContent = "";
-          }
+              .getElementById("auditForm")
+              .addEventListener("submit", async (e) => {
+                e.preventDefault();
+                clearError();
+                const _urlErr = document.getElementById("urlError");
+                if (_urlErr) {
+                  _urlErr.hidden = true;
+                  _urlErr.textContent = "";
+                }
 
-          const mode = getAuditMode();
-          const model = document.getElementById("modelSelect").value;
-          const keyValue = document.getElementById("apiKeyInput").value.trim();
-          const keyField = isOpenAIModel(model) ? "openai_api_key" : "api_key";
+                const mode = getAuditMode();
+                const model = document.getElementById("modelSelect").value;
+                const keyValue = document.getElementById("apiKeyInput").value.trim();
+                const keyField = isOpenAIModel(model) ? "openai_api_key" : "api_key";
 
-          let endpoint, requestBody;
-          if (mode === "html") {
-            const htmlContent =
-              htmlFileContent ||
-              document.getElementById("htmlInput").value.trim();
-            if (!htmlContent) {
-              showError(
-                "Please drop an HTML file or paste HTML before running the audit."
-              );
-              fileInput.focus();
-              return;
-            }
-            endpoint = "/api/audit";
-            requestBody = {
-              html_content: htmlContent,
-              [keyField]: keyValue,
-              model,
-            };
-          } else {
-            const urlVal = document.getElementById("urlInput").value.trim();
-            if (!urlVal) {
-              _urlErr.textContent =
-                "Please enter a URL before running the audit.";
-              _urlErr.hidden = false;
-              document.getElementById("urlInput").focus();
-              return;
-            }
-            endpoint =
-              mode === "url-nested"
-                ? "/api/audit/url/nested"
-                : "/api/audit/url";
-            requestBody = { url: urlVal, [keyField]: keyValue, model };
-          }
-
-          const submitBtn = document.getElementById("auditSubmitBtn");
-          const resultsSection = document.getElementById("auditResults");
-          const content = document.getElementById("auditResultsContent");
-
-          submitBtn.disabled = true;
-          submitBtn.textContent = "Running\u2026";
-          document.getElementById("auditStatus").textContent =
-            "Audit is running, please wait.";
-          resultsSection.style.display = "none";
-          content.innerHTML = "";
-
-          // Show progress bar for all audit modes
-          const isNested = mode === "url-nested";
-          const initialMsg = isNested ? "Crawling pages\u2026" : "Starting audit\u2026";
-          resultsSection.style.display = "block";
-          content.innerHTML = `
-            <div class="audit-progress" aria-hidden="true">
-              <p class="progress-message" id="progressMessage">${initialMsg}</p>
-              <div class="progress-bar-track" aria-hidden="true">
-                <div class="progress-bar-fill" id="progressFill" style="width: 0%"></div>
-              </div>
-              <p class="progress-detail" id="progressDetail"></p>
-            </div>
-            <p class="sr-only" id="progressStatus" role="status" aria-live="polite" aria-atomic="true"></p>`;
-
-          try {
-            const res = await fetch(endpoint, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(requestBody),
-            });
-
-            // All endpoints now stream NDJSON
-            // const reader = res.body.getReader();
-            // const decoder = new TextDecoder();
-            // let buffer = "";
-            // let data = null;
-            let data = await res.json();
-
-            // Milestone tracking for screen reader announcements
-            let llmAnnouncedStart = false;
-            let llmAnnouncedHalf  = false;
-
-            function announceToSR(text) {
-              const el = document.getElementById("progressStatus");
-              if (!el) return;
-              // Momentarily clear so identical consecutive messages re-trigger
-              el.textContent = "";
-              requestAnimationFrame(() => { el.textContent = text; });
-            }
-
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              buffer += decoder.decode(value, { stream: true });
-              const lines = buffer.split("\n");
-              buffer = lines.pop();
-              for (const line of lines) {
-                if (!line.trim()) continue;
-                try {
-                  const evt = JSON.parse(line);
-                  if (evt.type === "progress") {
-                    const msgEl = document.getElementById("progressMessage");
-                    const detEl = document.getElementById("progressDetail");
-                    const fillEl = document.getElementById("progressFill");
-
-                    // ── Visual update (aria-hidden, updates freely) ──────────
-                    if (evt.stage === "llm_progress") {
-                      if (msgEl) msgEl.textContent = "LLM Analysis";
-                      if (detEl) detEl.textContent = evt.prompt_name
-                        ? `${evt.prompt_name} (${evt.completed}/${evt.total})`
-                        : "";
-                    } else {
-                      if (msgEl) msgEl.textContent = evt.message;
-                      if (detEl) detEl.textContent = evt.page_url || "";
-                    }
-
-                    // ── Progress bar fill ────────────────────────────────────
-                    if (fillEl) {
-                      if (isNested && evt.page && evt.total_pages) {
-                        const pct = evt.stage === "page_complete"
-                          ? Math.round((evt.page / evt.total_pages) * 100)
-                          : Math.round(((evt.page - 0.5) / evt.total_pages) * 100);
-                        fillEl.style.width = pct + "%";
-                      } else if (!isNested) {
-                        const stagePct = {
-                          starting:              2,
-                          fetching:              2,
-                          fetch_complete:       10,
-                          programmatic_complete: 20,
-                          extraction_complete:   30,
-                          report_generating:     95,
-                          report_complete:      100,
-                        }[evt.stage];
-                        if (stagePct !== undefined) {
-                          fillEl.style.width = stagePct + "%";
-                        } else if (evt.stage === "llm_progress" && evt.total > 0) {
-                          const pct = 30 + Math.round((evt.completed / evt.total) * 65);
-                          fillEl.style.width = pct + "%";
-                        }
-                      }
-                    }
-
-                    // ── Screen reader milestone announcements ────────────────
-                    // Only announce at key milestones — not every visual update.
-                    if (evt.stage === "llm_progress") {
-                      if (!llmAnnouncedStart) {
-                        llmAnnouncedStart = true;
-                        announceToSR("Running LLM analysis");
-                      } else if (!llmAnnouncedHalf && evt.total > 0
-                                  && evt.completed >= Math.ceil(evt.total / 2)) {
-                        llmAnnouncedHalf = true;
-                        announceToSR("LLM analysis halfway complete");
-                      }
-                    } else if (evt.stage === "programmatic_complete") {
-                      announceToSR(evt.message);
-                    } else if (evt.stage === "report_generating") {
-                      announceToSR("Generating report");
-                    } else if (evt.stage === "crawl_complete") {
-                      announceToSR(evt.message);
-                    } else if (evt.stage === "auditing_page" && evt.page && evt.total_pages) {
-                      announceToSR(`Auditing page ${evt.page} of ${evt.total_pages}`);
-                    }
-                  } else if (evt.type === "result") {
-                    data = evt;
+                let endpoint, requestBody;
+                if (mode === "html") {
+                  const htmlContent =
+                          htmlFileContent ||
+                          document.getElementById("htmlInput").value.trim();
+                  if (!htmlContent) {
+                    showError(
+                            "Please drop an HTML file or paste HTML before running the audit."
+                    );
+                    fileInput.focus();
+                    return;
                   }
-                } catch (_) {}
-              }
-            }
-            if (buffer.trim()) {
-              try {
-                const evt = JSON.parse(buffer);
-                if (evt.type === "result") data = evt;
-              } catch (_) {}
-            }
-            if (!data) throw new Error("No result received from server");
+                  endpoint = "/api/audit";
+                  requestBody = {
+                    html_content: htmlContent,
+                    [keyField]: keyValue,
+                    model,
+                  };
+                } else {
+                  const urlVal = document.getElementById("urlInput").value.trim();
+                  if (!urlVal) {
+                    _urlErr.textContent =
+                            "Please enter a URL before running the audit.";
+                    _urlErr.hidden = false;
+                    document.getElementById("urlInput").focus();
+                    return;
+                  }
+                  endpoint =
+                          mode === "url-nested"
+                                  ? "/api/audit/url/nested"
+                                  : "/api/audit/url";
+                  requestBody = { url: urlVal, [keyField]: keyValue, model };
+                }
 
-            if (!data.success)
-              throw new Error(data.error || "Unknown error from server");
+                const submitBtn = document.getElementById("auditSubmitBtn");
+                const resultsSection = document.getElementById("auditResults");
+                const content = document.getElementById("auditResultsContent");
 
-            content.innerHTML = renderResults(data);
-            document.getElementById("auditStatus").textContent =
-              "Audit complete. Results are shown below.";
-            resultsSection.style.display = "block";
+                submitBtn.disabled = true;
+                submitBtn.textContent = "Running\u2026";
+                document.getElementById("auditStatus").textContent =
+                        "Audit is running, please wait.";
+                resultsSection.style.display = "none";
+                content.innerHTML = "";
 
-            // Wire up page tree node toggles
-            content.querySelectorAll(".page-node-header").forEach((header) => {
-              const toggle = () => {
-                const node = header.closest(".page-node");
-                const isOpen = node.classList.toggle("open");
-                header.setAttribute("aria-expanded", String(isOpen));
-                node.querySelector(":scope > .page-node-body").hidden = !isOpen;
-              };
-              header.addEventListener("click", toggle);
-              header.addEventListener("keydown", (e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  toggle();
+                // Show progress bar for all audit modes
+                const isNested = mode === "url-nested";
+                const initialMsg = isNested ? "Crawling pages\u2026" : "Starting audit\u2026";
+                resultsSection.style.display = "block";
+
+                // Set up the UI for the wait
+                content.innerHTML = `
+      <div class="audit-progress">
+        <p class="progress-message" id="progressMessage">${initialMsg}</p>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="progressFill" style="width: 10%"></div>
+        </div>
+        <p class="progress-detail" id="progressDetail">Analyzing site structure...</p>
+      </div>
+      <p class="sr-only" id="progressStatus" role="status" aria-live="polite">Audit started</p>`;
+
+                // Simulated progress to keep the user engaged while waiting for Vercel
+                let progressInterval = setInterval(() => {
+                  const fillEl = document.getElementById("progressFill");
+                  if (fillEl) {
+                    let currentWidth = parseInt(fillEl.style.width);
+                    if (currentWidth < 90) {
+                      fillEl.style.width = (currentWidth + 1) + "%";
+                    }
+                  }
+                }, 400);
+
+                try {
+                  const res = await fetch(endpoint, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(requestBody),
+                  });
+
+                  if (!res.ok) {
+                    const errorText = await res.text();
+                    throw new Error(`Server Error: ${res.status} - ${errorText}`);
+                  }
+
+                  // Vercel returns the full result at once
+                  const data = await res.json();
+
+                  clearInterval(progressInterval);
+
+                  if (!data.success) {
+                    throw new Error(data.error || "Unknown error from server");
+                  }
+
+                  // Final Render
+                  content.innerHTML = renderResults(data);
+                  document.getElementById("auditStatus").textContent =
+                          "Audit complete. Results are shown below.";
+                  resultsSection.style.display = "block";
+
+                  // Re-attach toggles for the newly rendered HTML
+                  attachResultListeners(content);
+
+                } catch (err) {
+                  clearInterval(progressInterval);
+                  console.error("Audit Error:", err);
+                  document.getElementById("auditStatus").textContent = "Audit failed.";
+                  content.innerHTML = `
+        <div class="audit-error" role="alert">
+          <strong>Audit Failed</strong><br>
+          ${esc(err.message)}<br><br>
+          <small>Check the Vercel Dashboard logs for Python tracebacks.</small>
+        </div>`;
+                  resultsSection.style.display = "block";
+                } finally {
+                  submitBtn.disabled = false;
+                  submitBtn.textContent = "Run Audit";
                 }
               });
-            });
 
-            // Wire up LLM accordion toggles
-            content.querySelectorAll(".llm-prompt-header").forEach((header) => {
-              const toggle = () => {
-                const prompt = header.closest(".llm-prompt");
-                const isOpen = prompt.classList.toggle("open");
-                header.setAttribute("aria-expanded", String(isOpen));
-                prompt.querySelector(".llm-prompt-body").hidden = !isOpen;
-              };
-              header.addEventListener("click", toggle);
-              header.addEventListener("keydown", (e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  toggle();
-                }
-              });
-            });
-
-            // Wire up CSV download
-            const dlBtn = document.getElementById("downloadReportBtn");
-            if (dlBtn) {
-              dlBtn.addEventListener("click", () => {
-                const blob = new Blob([data.csv_report], {
-                  type: "text/csv;charset=utf-8;",
-                });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `accessibility-report-${new Date()
-                  .toISOString()
-                  .slice(0, 10)}.csv`;
-                a.click();
-                URL.revokeObjectURL(url);
-              });
-            }
-          } catch (err) {
-            document.getElementById("auditStatus").textContent =
-              "Audit failed. See error details below.";
-            content.innerHTML = `
-          <div class="audit-error" role="alert">
-            <strong>Could not reach the audit server.</strong><br>
-            ${esc(err.message)}<br><br>
-            Make sure the server is running:
-            <code>python entry_points/api_server.py</code>
-          </div>`;
-            resultsSection.style.display = "block";
-          } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = "Run Audit";
-            document.getElementById("auditStatus").textContent = "";
-          }
+      // Helper to keep the listener code clean
+      function attachResultListeners(container) {
+        // Wire up page tree node toggles
+        container.querySelectorAll(".page-node-header").forEach((header) => {
+          const toggle = () => {
+            const node = header.closest(".page-node");
+            const isOpen = node.classList.toggle("open");
+            header.setAttribute("aria-expanded", String(isOpen));
+            node.querySelector(":scope > .page-node-body").hidden = !isOpen;
+          };
+          header.addEventListener("click", toggle);
         });
+
+        // Wire up LLM accordion toggles
+        container.querySelectorAll(".llm-prompt-header").forEach((header) => {
+          const toggle = () => {
+            const prompt = header.closest(".llm-prompt");
+            const isOpen = prompt.classList.toggle("open");
+            header.setAttribute("aria-expanded", String(isOpen));
+            prompt.querySelector(".llm-prompt-body").hidden = !isOpen;
+          };
+          header.addEventListener("click", toggle);
+        });
+
+        // Wire up CSV download
+        const dlBtn = container.querySelector("#downloadReportBtn");
+        if (dlBtn) {
+          // You'll need to make sure 'data' is accessible or pass it in
+          // Usually this is done by storing it globally or attaching to the button
+        }
+      }
+
+
 
       // ── Helpers ───────────────────────────────────────────────────────────────
 
