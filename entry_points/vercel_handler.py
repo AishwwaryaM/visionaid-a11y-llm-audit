@@ -229,12 +229,12 @@ class handler(BaseHTTPRequestHandler):
             self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
             self.send_header("Access-Control-Allow-Headers", "Content-Type")
 
-        def do_OPTIONS(self):
+    def do_OPTIONS(self):
             self.send_response(200)
             self._cors_headers()
             self.end_headers()
 
-        def do_GET(self):
+    def do_GET(self):
             path = self.path.split("?")[0]
 
             if path in ("/", "/index.html"):
@@ -246,7 +246,7 @@ class handler(BaseHTTPRequestHandler):
             else:
                 self.send_error(404, f"Path {path} not found")
 
-        def _serve_file(self, file_path: Path, content_type: str):
+    def _serve_file(self, file_path: Path, content_type: str):
             if not file_path.exists():
                 print(f"DEBUG: File not found at {file_path}") # Check Vercel logs for this
                 self.send_error(404, f"File {file_path.name} not found on server")
@@ -262,15 +262,18 @@ class handler(BaseHTTPRequestHandler):
 
     # POST ─────────────────────────────────────────────────────────────────────
 
-    def do_POST(self):  # noqa: N802
-        if self.path == "/api/audit":
-            self._handle_audit()
-        elif self.path == "/api/audit/url":
-            self._handle_url_audit(nested=False)
-        elif self.path == "/api/audit/url/nested":
-            self._handle_url_audit(nested=True)
-        else:
-            self._send_json({"error": "Endpoint Not Found"}, 404)
+    def do_POST(self):
+            # Strip trailing slashes and query parameters for the match
+            clean_path = self.path.split('?')[0].rstrip('/')
+
+            if clean_path == "/api/audit":
+                self._handle_audit()
+            elif clean_path == "/api/audit/url":
+                self._handle_url_audit(nested=False)
+            elif clean_path == "/api/audit/url/nested":
+                self._handle_url_audit(nested=True)
+            else:
+                self._send_json({"error": f"Endpoint {clean_path} Not Found"}, 404)
 
     def _start_ndjson_stream(self):
         """Send NDJSON response headers and return a send_event callable."""
