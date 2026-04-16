@@ -61,21 +61,34 @@ async def audit_html(request: Request):
     return StreamingResponse(event_generator(), media_type="application/x-ndjson")
 
 @app.post("/api/audit/url")
-async def audit_url(request: Request):
-    data = await request.json()
-    url = data.get("url", "").strip()
-    if not url:
-        raise HTTPException(status_code=400, detail="URL is required")
+async def handle_url_audit(request: Request):
+    try:
+        data = await request.json()
+        url = data.get("url", "").strip()
+        if not url.startswith('http'): url = f"https://{url}"
 
-    async def event_generator():
-        # Port your logic from _handle_url_audit here using 'yield'
-        # instead of 'self.wfile.write()'
-        yield (json.dumps({"type": "progress", "message": f"Fetching {url}..."}) + "\n").encode("utf-8")
+        # Log for debugging
+        print(f"Starting audit for: {url}")
 
         html_content = fetch_page(url)
-        # ... call run_audit and yield result ...
+        model = data.get("model", "claude-haiku-4-5-20251001")
+        api_key = _resolve_api_key(data, model)
 
-    return StreamingResponse(event_generator(), media_type="application/x-ndjson")
+        # Pass a specific tmp directory to run_audit
+        result = run_audit(html_content, api_key, model)
+
+        return result
+
+    except Exception as e:
+        import traceback
+        # This will print the EXACT error (like "Read-only file system") to Vercel Logs
+        error_details = traceback.format_exc()
+        print(error_details)
+        return {
+            "success": False,
+            "error": str(e),
+            "traceback": error_details if not os.getenv("PROD") else None
+        }
 
 # --- STATIC FILE SERVING ---
 # Vercel serves index.html and styles.css automatically if they are in the root.

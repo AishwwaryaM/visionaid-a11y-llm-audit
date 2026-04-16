@@ -112,7 +112,7 @@ def run_audit(html_content: str, api_key: str, model: str, progress_callback=Non
     try:
         html_path = Path(tmp_dir) / "input.html"
         html_path.write_text(html_content, encoding="utf-8")
-        output_dir = Path(tmp_dir) / "output"
+        tmp_dir = tempfile.mkdtemp(prefix="visionaid_audit_", dir="/tmp")
 
         manifest = run_pipeline(
             html_path=str(html_path),
