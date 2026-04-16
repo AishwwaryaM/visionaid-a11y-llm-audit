@@ -5,12 +5,18 @@ env:
 on:
   push:
     branches:
-      - main  # Or whatever your production branch is named
+      - main
 jobs:
   Deploy-Production:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install uv (Manual)
+        run: |
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+            echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
