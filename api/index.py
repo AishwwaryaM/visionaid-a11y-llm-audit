@@ -19,6 +19,8 @@ from entry_points.generate_report import generate_report
 from vision_aid.ingestion.file_crawler import fetch_page, fetch_pages_nested
 from processing_scripts.llm_client.client import is_openai_model
 
+_PAGE_MARKER = re.compile(r"<!--\s*PAGE:\s*(.*?)\s*-->")
+
 app = FastAPI()
 
 # Automatic CORS handling
