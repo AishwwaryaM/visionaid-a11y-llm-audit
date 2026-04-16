@@ -33,6 +33,146 @@ app.add_middleware(
 # Copy-paste split_pages, _resolve_api_key, run_audit, and _try_parse_json
 # EXACTLY as they are in your current script.
 
+ef _resolve_api_key(data: dict, model: str) -> str:
+    """Resolve key from request body or environment variables."""
+    from processing_scripts.llm_client.client import is_openai_model
+    if is_openai_model(model):
+        return data.get("openai_api_key", "").strip() or os.getenv("OPENAI_API_KEY", "")
+    return data.get("api_key", "").strip() or o
+
+ def run_audit(html_content: str, api_key: str, model: str, progress_callback=None) -> dict:
+     """Write *html_content* to a temp file, run the pipeline, return results.
+
+     If *api_key* is empty, the pipeline runs in dry-run mode (programmatic
+     checks only, no LLM calls).
+     """
+     dry_run = not api_key
+     # Vercel allows writing to /tmp for ephemeral storage
+     tmp_dir = tempfile.mkdtemp(prefix="visionaid_audit_")
+     try:
+         html_path = Path(tmp_dir) / "input.html"
+         html_path.write_text(html_content, encoding="utf-8")
+         tmp_dir = tempfile.mkdtemp(prefix="visionaid_audit_", dir="/tmp")
+
+         manifest = run_pipeline(
+             html_path=str(html_path),
+             output_dir=output_dir,
+             api_key=api_key if api_key else None,
+             model=model,
+             dry_run=dry_run,
+             include_summaries=False,
+             progress_callback=progress_callback,
+         )
+
+         # Read programmatic findings
+         prog_path = output_dir / "programmatic_findings.json"
+         programmatic_findings = (
+             json.loads(prog_path.read_text(encoding="utf-8"))
+             if prog_path.exists()
+             else []
+         )
+
+         # Read per-prompt LLM results
+         llm_results = {}
+         prompts_dir = output_dir / "prompts"
+         if prompts_dir.exists():
+             for prompt_file in sorted(prompts_dir.glob("*.json")):
+                 data = json.loads(prompt_file.read_text(encoding="utf-8"))
+                 name = data.get("prompt_name", prompt_file.stem)
+                 api_result = data.get("api_result", {})
+                 parsed = None
+                 if api_result.get("success"):
+                     parsed = _try_parse_json(api_result.get("response", ""))
+                 usage = api_result.get("usage", {})
+                 llm_results[name] = {
+                     "checklist": data.get("checklist"),
+                     "wcag_criteria": data.get("wcag_criteria", []),
+                     "status": "success" if api_result.get("success") else "dry_run",
+                     "parsed": parsed,
+                     "input_tokens": usage.get("input_tokens"),
+                     "output_tokens": usage.get("output_tokens"),
+                     "duration_seconds": api_result.get("duration_seconds"),
+                 }
+
+         # Generate CSV report (only meaningful when LLM ran)
+         csv_content = None
+         if not dry_run:
+             try:
+                 if progress_callback:
+                     progress_callback({
+                         "type": "progress",
+                         "stage": "report_generating",
+                         "message": "Generating report…",
+                     })
+                 report_dir = Path(tmp_dir) / "reports"
+                 report_path = generate_report(output_dir, report_dir)
+                 csv_content = report_path.read_text(encoding="utf-8")
+                 if progress_callback:
+                     progress_callback({
+                         "type": "progress",
+                         "stage": "report_complete",
+                         "message": "Report ready",
+                     })
+             except Exception as csv_err:
+                 print(f"  Warning: CSV generation failed: {csv_err}")
+
+         return {
+             "success": True,
+             "programmatic_findings": programmatic_findings,
+             "llm_results": llm_results,
+             "csv_report": csv_content,
+             "skipped_prompts": manifest.get("prompts_skipped", []),
+             "summary": {
+                 "programmatic_count": manifest.get("programmatic_findings_count", 0),
+                 "programmatic_by_checker": manifest.get(
+                     "programmatic_findings_by_checker", {}
+                 ),
+                 "llm_prompts_run": len(llm_results),
+                 "llm_prompts_skipped": len(manifest.get("prompts_skipped", [])),
+                 "total_input_tokens": manifest.get("total_input_tokens", 0),
+                 "total_output_tokens": manifest.get("total_output_tokens", 0),
+                 "estimated_cost_usd": manifest.get("estimated_cost_usd"),
+                 "model": model,
+                 "dry_run": dry_run,
+             },
+         }
+
+     except Exception as exc:
+         return {"success": False, "error": str(exc)}
+
+     finally:
+         shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
+def _try_parse_json(text: str):
+    """Parse JSON from an LLM response, stripping markdown code fences."""
+    m = re.search(r"```(?:json)?\s*\n?(.*?)```", text, re.DOTALL)
+    cleaned = m.group(1).strip() if m else text.strip()
+    try:
+        return json.loads(cleaned)
+    except (json.JSONDecodeError, ValueError):
+        return {"raw": text}
+
+def split_pages(html: str) -> list[tuple[str, str]]:
+    """Split concatenated HTML from ``fetch_pages_nested`` into per-page chunks.
+
+    Returns a list of ``(url, html)`` tuples.  If no PAGE markers are found
+    the entire string is returned as a single page with url ``"unknown"``.
+    """
+    markers = list(_PAGE_MARKER.finditer(html))
+    if not markers:
+        return [("unknown", html)]
+
+    pages: list[tuple[str, str]] = []
+    for i, m in enumerate(markers):
+        url = m.group(1)
+        start = m.end()
+        end = markers[i + 1].start() if i + 1 < len(markers) else len(html)
+        pages.append((url, html[start:end].strip()))
+    return pages
+
+
+
 # --- NEW FASTAPI ENDPOINTS ---
 
 @app.post("/api/audit")
