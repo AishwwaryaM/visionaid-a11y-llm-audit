@@ -9,6 +9,7 @@
           "source": "/favicon.ico",
           "destination": "/favicon.ico"
         },
+    { "source": "/api/validate-key", "destination": "/api/index.py" },,
     { "source": "/api/(.*)", "destination": "/api/index.py" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
