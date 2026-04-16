@@ -1,23 +1,21 @@
 {
-  "builds": [
+  "version": 2,
+  "rewrites": [
     {
-      "src": "entry_points/vercel_handler.py",
-      "use": "@vercel/python"
+      "source": "/styles.css",
+      "destination": "/styles.css"
     },
     {
-      "src": "index.html",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "entry_points/vercel_handler.py"
+      "source": "/favicon.ico",
+      "destination": "/favicon.ico"
     },
     {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "source": "/api/(.*)",
+      "destination": "/entry_points/vercel_handler.py"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
-  ],
-  "installCommand": "pip install poetry && poetry export -f requirements.txt --output requirements.txt --without-hashes && pip install -r requirements.txt"
+  ]
 }

@@ -224,31 +224,33 @@ class handler(BaseHTTPRequestHandler):
     # CORS helpers ─────────────────────────────────────────────────────────────
 
     def _cors_headers(self):
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
 
-    def do_OPTIONS(self):  # noqa: N802
-        """Handle CORS preflight requests."""
-        self.send_response(200)
-        self._cors_headers()
-        self.end_headers()
+        def do_OPTIONS(self):
+            self.send_response(200)
+            self._cors_headers()
+            self.end_headers()
 
-    # GET ──────────────────────────────────────────────────────────────────────
-
-    def do_GET(self):  # noqa: N802
+        def do_GET(self):
             path = self.path.split("?")[0]
-            if path in ("/", "/index.html"):
-                self._serve_file(STATIC_DIR / "index.html", "text/html; charset=utf-8")
-            elif path == "/styles.css":
-                self._serve_file(STATIC_DIR / "styles.css", "text/css; charset=utf-8")
-            else:
-                self.send_error(404, "Not Found")
 
-    def _serve_file(self, file_path: Path, content_type: str):
+            if path in ("/", "/index.html"):
+                self._serve_file(PROJECT_ROOT / "index.html", "text/html; charset=utf-8")
+            elif path == "/styles.css":
+                self._serve_file(PROJECT_ROOT / "styles.css", "text/css; charset=utf-8")
+            elif path == "/favicon.ico":
+                self._serve_file(PROJECT_ROOT / "favicon.ico", "image/x-icon")
+            else:
+                self.send_error(404, f"Path {path} not found")
+
+        def _serve_file(self, file_path: Path, content_type: str):
             if not file_path.exists():
-                self.send_error(404, "Not Found")
+                print(f"DEBUG: File not found at {file_path}") # Check Vercel logs for this
+                self.send_error(404, f"File {file_path.name} not found on server")
                 return
+
             body = file_path.read_bytes()
             self.send_response(200)
             self.send_header("Content-Type", content_type)
