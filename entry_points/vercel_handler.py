@@ -237,12 +237,25 @@ class handler(BaseHTTPRequestHandler):
     # GET ──────────────────────────────────────────────────────────────────────
 
     def do_GET(self):  # noqa: N802
-        """Static files are handled by vercel.json. This is just a health check."""
-        self.send_response(200)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self._cors_headers()
-        self.end_headers()
-        self.wfile.write(b'{"status": "API is running"}')
+            path = self.path.split("?")[0]
+            if path in ("/", "/index.html"):
+                self._serve_file(STATIC_DIR / "index.html", "text/html; charset=utf-8")
+            elif path == "/styles.css":
+                self._serve_file(STATIC_DIR / "styles.css", "text/css; charset=utf-8")
+            else:
+                self.send_error(404, "Not Found")
+
+    def _serve_file(self, file_path: Path, content_type: str):
+            if not file_path.exists():
+                self.send_error(404, "Not Found")
+                return
+            body = file_path.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Length", str(len(body)))
+            self._cors_headers()
+            self.end_headers()
+            self.wfile.write(body)
 
     # POST ─────────────────────────────────────────────────────────────────────
 
