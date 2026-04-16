@@ -27,6 +27,10 @@ import tempfile
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 
+# ── Project root and sys.path ─────────────────────────────────────────────────
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
 # Vercel injects environment variables from the dashboard,
 # but load_dotenv is kept safe if used in a local wrapper.
 try:
@@ -34,9 +38,6 @@ try:
 except ImportError:
     pass
 
-# ── Project root and sys.path ─────────────────────────────────────────────────
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
 
 # Load .env if it exists (mostly for local testing, Vercel uses dashboard envs)
 if PROJECT_ROOT.joinpath(".env").exists():
