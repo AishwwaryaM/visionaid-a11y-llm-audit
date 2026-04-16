@@ -245,6 +245,84 @@ async def handle_url_audit(request: Request):
             "traceback": error_details if not os.getenv("PROD") else None
         }
 
+@app.post("/api/audit/url/nested")
+async def handle_nested_audit(request: Request):
+    """
+    Fetches multiple pages from a site (crawling), audits each page,
+    and returns a merged result.
+    """
+    try:
+        data = await request.json()
+        url = data.get("url", "").strip()
+        model = data.get("model", "claude-haiku-4-5-20251001")
+        api_key = _resolve_api_key(data, model)
+
+        if not url:
+            return {"success": False, "error": "URL is required"}
+
+        # Ensure protocol for the crawler
+        if not url.startswith(("http://", "https://")):
+            url = f"https://{url}"
+
+        # 1. Fetch all pages using the crawler
+        # This returns a large HTML string with markers and a crawl tree dict
+        full_html, crawl_tree = fetch_pages_nested(url)
+
+        # 2. Split the massive HTML into individual (url, html) tuples
+        pages = split_pages(full_html)
+
+        # 3. Initialize the merged response object
+        merged_results = {
+            "success": True,
+            "crawl_tree": crawl_tree,
+            "page_results": {},
+            "programmatic_findings": [],
+            "llm_results": {},
+            "pages_audited": [],
+            "summary": {
+                "programmatic_count": 0,
+                "llm_prompts_run": 0,
+                "model": model,
+                "pages": len(pages),
+                "dry_run": not api_key
+            }
+        }
+
+        # 4. Loop through each discovered page and run the audit
+        for page_url, page_html in pages:
+            # Re-use your existing run_audit helper
+            res = run_audit(page_html, api_key, model)
+
+            if not res.get("success"):
+                continue
+
+            merged_results["pages_audited"].append(page_url)
+
+            # Map results to the specific URL for the frontend tree view
+            merged_results["page_results"][page_url] = {
+                "programmatic_findings": res.get("programmatic_findings", []),
+                "llm_results": res.get("llm_results", {}),
+                "summary": res.get("summary", {})
+            }
+
+            # Flatten programmatic findings into the top-level list
+            for finding in res.get("programmatic_findings", []):
+                finding["page_url"] = page_url
+                merged_results["programmatic_findings"].append(finding)
+
+            # Update global counters
+            merged_results["summary"]["programmatic_count"] += res["summary"].get("programmatic_count", 0)
+            merged_results["summary"]["llm_prompts_run"] += res["summary"].get("llm_prompts_run", 0)
+
+        return merged_results
+
+    except Exception as e:
+        import traceback
+        return {
+            "success": False,
+            "error": f"Nested audit failed: {str(e)}",
+            "traceback": traceback.format_exc()
+        }
 # --- STATIC FILE SERVING ---
 # Vercel serves index.html and styles.css automatically if they are in the root.
 # You don't need code for this anymore!
