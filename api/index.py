@@ -325,6 +325,39 @@ async def handle_nested_audit(request: Request):
             "error": f"Nested audit failed: {str(e)}",
             "traceback": traceback.format_exc()
         }
+
+@app.post("/api/validate-key")
+async def handle_validate_key(request: Request):
+    """
+    Validates the format of the provided API key.
+    Replaces the old self._handle_validate_key() logic.
+    """
+    try:
+        data = await request.json()
+        key = data.get("api_key", "").strip()
+        provider = data.get("provider", "anthropic")
+
+        if not key:
+            return {"valid": False, "error": "No key provided"}
+
+        # Basic format validation to prevent unnecessary API calls
+        if provider == "anthropic":
+            # Anthropic keys usually start with sk-ant-
+            is_valid = key.startswith("sk-ant") and len(key) > 20
+        elif provider == "openai":
+            # OpenAI keys usually start with sk-
+            is_valid = key.startswith("sk-") and len(key) > 20
+        else:
+            is_valid = len(key) > 10
+
+        if is_valid:
+            return {"valid": True}
+        else:
+            return {"valid": False, "error": f"Invalid {provider} key format"}
+
+    except Exception as e:
+        return {"valid": False, "error": f"Server error during validation: {str(e)}"}
+
 # --- STATIC FILE SERVING ---
 # Vercel serves index.html and styles.css automatically if they are in the root.
 # You don't need code for this anymore!
