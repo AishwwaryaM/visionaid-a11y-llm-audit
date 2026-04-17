@@ -194,28 +194,37 @@ def split_pages(html: str) -> list[tuple[str, str]]:
 
 @app.post("/api/audit")
 async def audit_html(request: Request):
-    data = await request.json()
-
-    async def event_generator():
+    """
+    Standard JSON response for Vercel compatibility.
+    Fixes the 'Unexpected character after JSON' error.
+    """
+    try:
+        data = await request.json()
         html_content = data.get("html_content", "").strip()
         model = data.get("model", "claude-haiku-4-5-20251001")
         api_key = _resolve_api_key(data, model)
 
-        def send_event(obj):
-            return (json.dumps(obj) + "\n").encode("utf-8")
+        if not html_content:
+            return {"success": False, "error": "html_content is required"}
 
-        yield send_event({"type": "progress", "stage": "starting", "message": "Starting audit…"})
+        # run_audit handles the pipeline and returns a dictionary.
+        # We no longer need the lambda progress_callback because
+        # standard JSON responses are not streams.
+        result = run_audit(html_content, api_key, model)
 
-        # Use your existing run_audit
-        result = run_audit(html_content, api_key, model,
-                           progress_callback=lambda x: event_generator.yield_queue.append(x))
-        # Note: run_audit is synchronous. For a simple migration, we'll run
-        # the audit and return the result as the final line of the stream.
+        # Ensure the result is marked as success/failure for the frontend
+        if "success" not in result:
+            result["success"] = True
 
-        result["type"] = "result"
-        yield send_event(result)
+        return result
 
-    return StreamingResponse(event_generator(), media_type="application/x-ndjson")
+    except Exception as e:
+        import traceback
+        return {
+            "success": False,
+            "error": f"Audit failed: {str(e)}",
+            "traceback": traceback.format_exc()
+        }
 
 @app.post("/api/audit/url")
 async def handle_url_audit(request: Request):
