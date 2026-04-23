@@ -895,7 +895,7 @@
                   resultsSection.style.display = "block";
 
                   // Re-attach toggles for the newly rendered HTML
-                  attachResultListeners(content);
+                  attachResultListeners(content, data);
 
                 } catch (err) {
                   clearInterval(progressInterval);
@@ -914,35 +914,42 @@
                 }
               });
 
-      // Helper to keep the listener code clean
-      function attachResultListeners(container) {
+      // 868: Added 'data' parameter to access the csv_report string
+      function attachResultListeners(container, data) {
         // Wire up page tree node toggles
         container.querySelectorAll(".page-node-header").forEach((header) => {
-          const toggle = () => {
+          header.addEventListener("click", () => {
             const node = header.closest(".page-node");
             const isOpen = node.classList.toggle("open");
             header.setAttribute("aria-expanded", String(isOpen));
             node.querySelector(":scope > .page-node-body").hidden = !isOpen;
-          };
-          header.addEventListener("click", toggle);
+          });
         });
 
         // Wire up LLM accordion toggles
         container.querySelectorAll(".llm-prompt-header").forEach((header) => {
-          const toggle = () => {
+          header.addEventListener("click", () => {
             const prompt = header.closest(".llm-prompt");
             const isOpen = prompt.classList.toggle("open");
             header.setAttribute("aria-expanded", String(isOpen));
             prompt.querySelector(".llm-prompt-body").hidden = !isOpen;
-          };
-          header.addEventListener("click", toggle);
+          });
         });
 
-        // Wire up CSV download
+        // --- CSV DOWNLOAD FIX START ---
         const dlBtn = container.querySelector("#downloadReportBtn");
-        if (dlBtn) {
-          // You'll need to make sure 'data' is accessible or pass it in
-          // Usually this is done by storing it globally or attaching to the button
+        if (dlBtn && data.csv_report) {
+          dlBtn.addEventListener("click", () => {
+            const blob = new Blob([data.csv_report], { type: "text/csv;charset=utf-8;" });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", `visionaid_report_${Date.now()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+          });
         }
       }
 
