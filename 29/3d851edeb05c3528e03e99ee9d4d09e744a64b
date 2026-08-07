@@ -1,0 +1,12 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "293d851edeb05c3528e03e99ee9d4d09e744a64b",
+  "prompts": {},
+  "humans": {
+    "h_7b3da1fdda67bb": {
+      "author": "Justin McLellan <jmclellan@beast.>"
+    }
+  }
+}
