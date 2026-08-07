@@ -1,16 +1,10 @@
 {
   "version": 2,
-  "rewrites": [
+  "redirects": [
     {
-          "source": "/styles.css",
-          "destination": "/styles.css"
-        },
-        {
-          "source": "/favicon.ico",
-          "destination": "/favicon.ico"
-        },
-    { "source": "/api/validate-key", "destination": "/api/index.py" },
-    { "source": "/api/(.*)", "destination": "/api/index.py" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+      "source": "/:path*",
+      "destination": "https://va-dat.c4g.dev/:path*",
+      "permanent": true
+    }
   ]
 }
