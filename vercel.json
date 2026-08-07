@@ -2,6 +2,11 @@
   "version": 2,
   "redirects": [
     {
+      "source": "/",
+      "destination": "https://va-dat.c4g.dev/",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "destination": "https://va-dat.c4g.dev/:path*",
       "permanent": true
