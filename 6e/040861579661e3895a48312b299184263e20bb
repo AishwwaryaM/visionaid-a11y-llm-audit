@@ -1,0 +1,28 @@
+index.html
+  s_185e7bfaf1ee13::t_717e49a2eb4074 973-987
+  s_185e7bfaf1ee13::t_b1cb6084bbe9dd 941-943
+  s_185e7bfaf1ee13::t_56b2e5e6a715f8 966-972
+  s_185e7bfaf1ee13::t_5e941701c4b06b 1012
+  s_185e7bfaf1ee13::t_45bda08c8f056e 1021-1106
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "6e040861579661e3895a48312b299184263e20bb",
+  "prompts": {},
+  "humans": {
+    "h_7b3da1fdda67bb": {
+      "author": "Justin McLellan <jmclellan@beast.>"
+    }
+  },
+  "sessions": {
+    "s_185e7bfaf1ee13": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b3324cdc-ab3c-4e78-9bd3-6846299cd00f",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Justin McLellan <jmclellan@beast.>"
+    }
+  }
+}
