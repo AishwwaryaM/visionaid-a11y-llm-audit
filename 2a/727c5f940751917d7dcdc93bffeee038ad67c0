@@ -1,0 +1,44 @@
+.dockerignore
+  s_185e7bfaf1ee13::t_bc1a0bb6e91226 6-7,10-12
+  s_185e7bfaf1ee13::t_865e9cc5fcb387 1-5,8-9,13-36
+  s_185e7bfaf1ee13::t_fac35f04a9d4e3 37-38
+DEPLOY.md
+  s_185e7bfaf1ee13::t_1629000d2a8b1c 23,25-27,30-55
+  s_185e7bfaf1ee13::t_16f06cc7a3aac9 105-108
+  s_185e7bfaf1ee13::t_0ca220ec8393b5 1-9,12-22,24,28-29,56-101,103
+  s_185e7bfaf1ee13::t_711864261f1ef0 10-11
+  s_185e7bfaf1ee13::t_b18c6d0dc707b4 102,104
+docker-compose.yml
+  s_185e7bfaf1ee13::t_635097edd7cdda 1-2,6-17,31-32,35,37-48,52-56
+  s_185e7bfaf1ee13::t_3e7bd20abadfa3 3-5
+  s_185e7bfaf1ee13::t_c5cd39478e218f 33-34,36
+  s_185e7bfaf1ee13::t_f4b60e2a1e8362 18-30
+  s_185e7bfaf1ee13::t_a281e5e2f8d040 49-51
+Dockerfile
+  s_185e7bfaf1ee13::t_9a1b53dad4aa4d 8-9,11-13,15,26,31,33-46,59-61
+  s_185e7bfaf1ee13::t_03bf4b0a5ec0c4 14,23-25,27,32,47-49
+  s_185e7bfaf1ee13::t_a2dd0265705e08 1-7,10,20-22,28-30,50-58,62-67
+  s_185e7bfaf1ee13::t_c3ceee7614673d 18-19
+  s_185e7bfaf1ee13::t_79e999a91d6cf4 16-17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "2a727c5f940751917d7dcdc93bffeee038ad67c0",
+  "prompts": {},
+  "humans": {
+    "h_7b3da1fdda67bb": {
+      "author": "Justin McLellan <jmclellan@beast.>"
+    }
+  },
+  "sessions": {
+    "s_185e7bfaf1ee13": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b3324cdc-ab3c-4e78-9bd3-6846299cd00f",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Justin McLellan <jmclellan@beast.>"
+    }
+  }
+}
