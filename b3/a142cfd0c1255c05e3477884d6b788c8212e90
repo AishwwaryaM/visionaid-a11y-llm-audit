@@ -1,0 +1,37 @@
+docs/modular-prompts-plan.md
+  s_185e7bfaf1ee13::t_8c5501af89f273 10,146
+processing_scripts/docs/pipeline.md
+  s_185e7bfaf1ee13::t_8c5501af89f273 319
+CLAUDE.md
+  s_185e7bfaf1ee13::t_921a51e803b19a 16-21,24-28,30-42,45,47,49-52,54-57,59,64-68,70-71,73-74,77-87,91-93,98,102,106-110,114-118
+README.md
+  s_185e7bfaf1ee13::t_5f765fa71b5002 43-49
+  s_185e7bfaf1ee13::t_24b0900c237fce 75-87,89,93
+  s_185e7bfaf1ee13::t_35060092570298 103
+  s_185e7bfaf1ee13::t_93910ea031a9da 290,298,306-307
+  s_185e7bfaf1ee13::t_6ce4970b0b4661 235-281
+  s_185e7bfaf1ee13::t_79671b03677b55 1,5
+  s_185e7bfaf1ee13::t_33f8b34248cc03 182-210,217-218,221-225
+  s_185e7bfaf1ee13::t_0af4d14d2a3f2e 6,226,282
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "b3a142cfd0c1255c05e3477884d6b788c8212e90",
+  "prompts": {},
+  "humans": {
+    "h_7b3da1fdda67bb": {
+      "author": "Justin McLellan <jmclellan@beast.>"
+    }
+  },
+  "sessions": {
+    "s_185e7bfaf1ee13": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b3324cdc-ab3c-4e78-9bd3-6846299cd00f",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Justin McLellan <jmclellan@beast.>"
+    }
+  }
+}
